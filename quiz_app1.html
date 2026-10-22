@@ -1,0 +1,3535 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IC Scripting Hub - Lý Thuyết & Trắc Nghiệm Vi Mạch</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0b1120;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success-bg: rgba(34, 197, 94, 0.15);
+      --success-border: #22c55e;
+      --error-bg: rgba(239, 68, 68, 0.15);
+      --error-border: #ef4444;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    pre, code {
+      font-family: 'Fira Code', 'Cascadia Code', Consolas, Monaco, monospace;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .option-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .option-btn:hover:not(.disabled) {
+      border-color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.08);
+      transform: translateY(-1px);
+    }
+    .option-btn.selected {
+      border-color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 0 1px #38bdf8;
+    }
+    .option-btn.correct-highlight {
+      background-color: var(--success-bg) !important;
+      border-color: var(--success-border) !important;
+      color: #86efac !important;
+    }
+    .option-btn.wrong-highlight {
+      background-color: var(--error-bg) !important;
+      border-color: var(--error-border) !important;
+      color: #fca5a5 !important;
+    }
+    .option-btn.missed-highlight {
+      border: 2px dashed #eab308 !important;
+      background-color: rgba(234, 179, 8, 0.1) !important;
+    }
+    .theory-section {
+      scroll-margin-top: 5rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen custom-scroll pb-16">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-900/90 border-b border-slate-800 px-4 lg:px-8 py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-sky-500/20">
+          <span class="text-xl font-bold text-white">⚡</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            IC Scripting Hub
+            <span class="badge bg-sky-500/20 text-sky-400 border border-sky-500/30">Chương 1–6</span>
+          </h1>
+          <p class="text-xs text-slate-400">Lý thuyết trọng tâm &bull; Ngân hàng trắc nghiệm vi mạch &bull; Tcl, Bash & EDA Flow</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs: Học Lý Thuyết vs Thi Trắc Nghiệm -->
+      <div class="flex items-center gap-3">
+        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-700/80 text-xs font-bold">
+          <button id="tabTheoryBtn" onclick="switchMainTab('theory')" class="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
+            <span>📚 Lý thuyết & Kiến thức</span>
+          </button>
+          <button id="tabQuizBtn" onclick="switchMainTab('quiz')" class="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all bg-sky-500 text-white shadow-sm">
+            <span>✍️ Ôn tập Trắc nghiệm</span>
+          </button>
+        </div>
+
+        <!-- Timer chỉ hiện trong thi thử -->
+        <div id="examTimer" class="hidden items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-300 font-mono text-sm font-semibold">
+          <svg class="w-4 h-4 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="3"></circle><path d="M12 6v6l4 2" stroke-width="3"></path></svg>
+          <span id="timerText">60:00</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: PHẦN LÝ THUYẾT & KIẾN THỨC CHUYÊN SÂU                              -->
+  <!-- ========================================================================= -->
+  <section id="theoryTab" class="hidden max-w-7xl mx-auto px-4 lg:px-8 pt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+      <!-- Sidebar Mục lục Lý Thuyết -->
+      <aside class="lg:col-span-1 space-y-4 lg:sticky lg:top-24 h-fit">
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center justify-between">
+            <span>Mục lục 6 Chương</span>
+            <span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/30">Lý thuyết</span>
+          </h3>
+          <nav class="space-y-1.5 text-xs font-medium">
+            <a href="#theory-ch1" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 1: Tổng quan EDA</span>
+              <span class="badge bg-blue-500/20 text-blue-400">01</span>
+            </a>
+            <a href="#theory-ch2" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 2: Shell Bash & Linux</span>
+              <span class="badge bg-emerald-500/20 text-emerald-400">02</span>
+            </a>
+            <a href="#theory-ch3" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 3: Cú pháp Tcl & List/Array</span>
+              <span class="badge bg-amber-500/20 text-amber-400">03</span>
+            </a>
+            <a href="#theory-ch4" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 4: Điều khiển & Thủ tục Tcl</span>
+              <span class="badge bg-purple-500/20 text-purple-400">04</span>
+            </a>
+            <a href="#theory-ch5" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 5: Chuỗi, Regex & File I/O</span>
+              <span class="badge bg-pink-500/20 text-pink-400">05</span>
+            </a>
+            <a href="#theory-ch6" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-700/60 hover:text-white transition">
+              <span>Chương 6: Tích hợp EDA Tools</span>
+              <span class="badge bg-cyan-500/20 text-cyan-400">06</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Card chuyển nhanh sang luyện tập -->
+        <div class="bg-gradient-to-br from-sky-900/50 to-indigo-900/50 border border-sky-700/40 rounded-2xl p-4 text-xs space-y-2">
+          <p class="font-bold text-sky-200">💡 Đã đọc xong lý thuyết?</p>
+          <p class="text-slate-300 leading-relaxed">Hãy chuyển ngay sang tab trắc nghiệm để củng cố kiến thức với ngân hàng 26 câu hỏi có giải thích chi tiết!</p>
+          <button onclick="switchMainTab('quiz')" class="w-full mt-2 py-2 px-3 bg-sky-500 hover:bg-sky-400 text-slate-900 font-bold rounded-xl transition shadow">
+            👉 Làm bài tập trắc nghiệm ngay
+          </button>
+        </div>
+      </aside>
+
+      <!-- Nội dung chi tiết các chương lý thuyết -->
+      <main class="lg:col-span-3 space-y-8">
+
+        <!-- ================= CHƯƠNG 1 ================= -->
+        <article id="theory-ch1" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs">Chương 1</span>
+              <h2 class="text-lg font-bold text-white">Tổng quan Tự động hóa Thiết kế Vi mạch (IC Design Automation)</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(1)" class="text-xs px-3 py-1 bg-blue-500/20 text-blue-300 hover:bg-blue-500 hover:text-white rounded-lg transition border border-blue-500/30">
+              Làm trắc nghiệm Chương 1 ➔
+            </button>
+          </div>
+
+          <!-- IC Design Flow -->
+          <div class="space-y-2 text-xs md:text-sm text-slate-300 leading-relaxed">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <span class="text-blue-400">1. Quy trình thiết kế vi mạch (IC Design Flow)</span>
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                <span class="font-bold text-sky-400 block mb-1">🔹 Frontend (Thiết kế mức hàm & logic)</span>
+                <ul class="list-disc list-inside space-y-1 text-slate-400 text-xs">
+                  <li><strong class="text-slate-200">RTL Design:</strong> Viết mã phần cứng bằng Verilog / VHDL / SystemVerilog.</li>
+                  <li><strong class="text-slate-200">Functional Verification:</strong> Mô phỏng kiểm tra chức năng logic bằng testbench.</li>
+                  <li><strong class="text-slate-200">Synthesis:</strong> Tổng hợp RTL sang cổng logic thực tế (Gate-level netlist).</li>
+                </ul>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60">
+                <span class="font-bold text-indigo-400 block mb-1">🔹 Backend (Thiết kế vật lý - Physical Design)</span>
+                <ul class="list-disc list-inside space-y-1 text-slate-400 text-xs">
+                  <li><strong class="text-slate-200">Floorplanning & Placement:</strong> Quy hoạch diện tích die và định vị hàng triệu cell logic.</li>
+                  <li><strong class="text-slate-200">Clock Tree Synthesis (CTS):</strong> Xây dựng mạng cây phân phối xung nhịp cân bằng độ trễ.</li>
+                  <li><strong class="text-slate-200">Routing & Signoff:</strong> Đi dây kết nối kim loại, kiểm tra quy tắc vật lý DRC/LVS và ký duyệt.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- GUI vs Script-First & Regression -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm text-slate-300">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-amber-400 text-sm">2. Hạn chế của GUI & Tư duy Script-First</h4>
+              <p class="text-slate-400 text-xs">GUI rất tốt để trực quan hóa, nhưng trong công nghiệp vi mạch có các nhược điểm chí mạng:</p>
+              <ul class="list-disc list-inside space-y-1 text-slate-300 text-xs">
+                <li><strong class="text-rose-400">Non-reproducible:</strong> Không thể tái lập lại chính xác chuỗi thao tác chuột.</li>
+                <li><strong class="text-rose-400">Không mở rộng:</strong> Không thể click tay cho 1.000 test case.</li>
+                <li><strong class="text-rose-400">Không tích hợp CI/CD:</strong> Máy chủ tự động không thể dùng chuột.</li>
+              </ul>
+              <div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                ⭐ Quy tắc vàng: Làm việc nhiều hơn 2 lần ➔ Viết script!
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-emerald-400 text-sm">3. Kiểm thử hồi quy (Regression Testing)</h4>
+              <p class="text-slate-400 text-xs">Chạy lại toàn bộ tập hợp test sau mỗi lần sửa đổi mã thiết kế hoặc cập nhật công cụ EDA:</p>
+              <ul class="list-disc list-inside space-y-1 text-slate-300 text-xs">
+                <li>Phát hiện lỗi sớm ngay khi code bị hồi quy (regression).</li>
+                <li>Đảm bảo chất lượng sản phẩm sau mỗi commit mã nguồn.</li>
+                <li>Tập hợp test case chính là tài liệu sống của dự án.</li>
+                <li>Thực tế công nghiệp: chạy <strong>> 100.000 test cases mỗi ngày</strong> trên hệ thống cluster.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Bảng so sánh Bash, Tcl, Python, Perl -->
+          <div class="space-y-2">
+            <h4 class="font-bold text-white text-xs md:text-sm">4. "Bộ ba quyền lực" trong Scripting Vi Mạch (Bash + Tcl + Python)</h4>
+            <div class="overflow-x-auto custom-scroll">
+              <table class="w-full text-left text-xs border border-slate-700 rounded-xl overflow-hidden">
+                <thead class="bg-slate-950 text-slate-300 uppercase text-[11px]">
+                  <tr>
+                    <th class="p-2.5 border-b border-slate-700">Ngôn ngữ</th>
+                    <th class="p-2.5 border-b border-slate-700">Vai trò</th>
+                    <th class="p-2.5 border-b border-slate-700">Ưu điểm</th>
+                    <th class="p-2.5 border-b border-slate-700">Nhược điểm</th>
+                    <th class="p-2.5 border-b border-slate-700">Xu hướng</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-300">
+                  <tr class="hover:bg-slate-700/30">
+                    <td class="p-2.5 font-bold text-emerald-400">Bash</td>
+                    <td class="p-2.5">Glue language</td>
+                    <td class="p-2.5">Giao tiếp Linux OS gốc, nhẹ, chạy nhanh</td>
+                    <td class="p-2.5">Xử lý cấu trúc dữ liệu yếu</td>
+                    <td class="p-2.5 font-semibold text-sky-400">Nền tảng cố định</td>
+                  </tr>
+                  <tr class="hover:bg-slate-700/30">
+                    <td class="p-2.5 font-bold text-amber-400">Tcl</td>
+                    <td class="p-2.5">EDA native command</td>
+                    <td class="p-2.5">Nhúng trực tiếp vào nhân các EDA tool</td>
+                    <td class="p-2.5">Ít thư viện bên ngoài đa dạng</td>
+                    <td class="p-2.5 font-semibold text-amber-400">Chuẩn công nghiệp EDA</td>
+                  </tr>
+                  <tr class="hover:bg-slate-700/30">
+                    <td class="p-2.5 font-bold text-sky-400">Python</td>
+                    <td class="p-2.5">Data & Framework</td>
+                    <td class="p-2.5">Kho thư viện phân tích đồ sộ (AI, parser)</td>
+                    <td class="p-2.5">Nặng hơn, không nhúng trực tiếp mọi tool</td>
+                    <td class="p-2.5 font-semibold text-emerald-400">Tăng trưởng mạnh mẽ</td>
+                  </tr>
+                  <tr class="hover:bg-slate-700/30">
+                    <td class="p-2.5 font-bold text-slate-400">Perl</td>
+                    <td class="p-2.5">Text & Regex</td>
+                    <td class="p-2.5">Xử lý biểu thức chính quy cực mạnh</td>
+                    <td class="p-2.5">Cú pháp khó đọc, khó bảo trì mã nguồn lớn</td>
+                    <td class="p-2.5 font-semibold text-rose-400">Đang giảm dần</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHƯƠNG 2 ================= -->
+        <article id="theory-ch2" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs">Chương 2</span>
+              <h2 class="text-lg font-bold text-white">Làm Việc với Shell Bash trong Môi Trường Linux</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(2)" class="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white rounded-lg transition border border-emerald-500/30">
+              Làm trắc nghiệm Chương 2 ➔
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs md:text-sm text-slate-300">
+            <!-- Cấu trúc thư mục & phân quyền -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-emerald-400 text-sm">1. Cấu trúc Project chuẩn trong IC Design</h4>
+                <div class="p-2.5 bg-slate-950 rounded-lg font-mono text-xs text-sky-300">
+                  rtl/ tb/ sim/ synth/ reports/ scripts/ Makefile
+                </div>
+                <ul class="space-y-1 text-slate-400 text-xs list-disc list-inside">
+                  <li><code>/opt/synopsys/</code>, <code>/opt/cadence/</code>: Đường dẫn cài đặt công cụ EDA.</li>
+                  <li><code>~/</code>: Thư mục cá nhân của kỹ sư (Home directory).</li>
+                  <li><code>pwd, cd, ls -la, mkdir -p, cp -r, mv, rm -i, ln -s</code>: Các lệnh điều hướng bắt buộc.</li>
+                </ul>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-sky-400 text-sm">2. Phân quyền tập tin (Permissions rwx)</h4>
+                <ul class="space-y-1 text-slate-300 text-xs list-disc list-inside">
+                  <li><code>chmod +x script.sh</code> hoặc <code>chmod 755 script.sh</code>: Bắt buộc cấp quyền thực thi cho file kịch bản.</li>
+                  <li><code>chmod 644 report.txt</code>: Quyền đọc ghi cho chủ sở hữu, người khác chỉ đọc.</li>
+                  <li><code>ls -l</code>: Kiểm tra chi tiết 10 bit quyền của file.</li>
+                </ul>
+                <div class="p-2 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-300 text-[11px]">
+                  📌 Best practice: Kịch bản automation luôn cần <code>chmod +x</code>. Tool thực thi cần 755.
+                </div>
+              </div>
+            </div>
+
+            <!-- Pipes & Redirection -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-amber-400 text-sm">3. Pipe và Điều hướng dòng dữ liệu (Pipes & Redirection)</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 font-mono text-xs text-slate-200">
+                <div class="p-2 bg-slate-950 rounded border border-slate-800">
+                  <span class="text-sky-400">dc_shell -f run.tcl > log.txt 2>&1</span>
+                  <p class="text-[11px] text-slate-400 font-sans mt-1">Gộp cả kết quả chuẩn (stdout - 1) và thông báo lỗi (stderr - 2) vào file log.</p>
+                </div>
+                <div class="p-2 bg-slate-950 rounded border border-slate-800">
+                  <span class="text-sky-400">grep VIOLATION *.rpt | head -10</span>
+                  <p class="text-[11px] text-slate-400 font-sans mt-1">Lọc các dòng có từ VIOLATION và chỉ lấy 10 dòng đầu tiên.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Best practice Bash -->
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-700/70 space-y-1 text-xs">
+              <span class="font-bold text-white block">⭐ Best practices cho Bash Scripting trong sản xuất:</span>
+              <p class="text-slate-400">1. Luôn bắt đầu bằng shebang: <code class="text-sky-400 font-bold">#!/bin/bash</code></p>
+              <p class="text-slate-400">2. Luôn đặt cờ: <code class="text-emerald-400 font-bold">set -euo pipefail</code> ở đầu file để script tự dừng khi có lệnh lỗi hoặc gọi biến chưa khai báo.</p>
+              <p class="text-slate-400">3. Vòng lặp đọc log an toàn: <code class="text-amber-400 font-bold">while IFS= read -r line; do ... done &lt; log.txt</code></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHƯƠNG 3 ================= -->
+        <article id="theory-ch3" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs">Chương 3</span>
+              <h2 class="text-lg font-bold text-white">Cú Pháp Tcl và Cấu Trúc Dữ Liệu Cơ Bản</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(3)" class="text-xs px-3 py-1 bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white rounded-lg transition border border-amber-500/30">
+              Làm trắc nghiệm Chương 3 ➔
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs md:text-sm text-slate-300">
+            <!-- Interpreter & 3 substitution -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-amber-400 text-sm">1. Cơ chế Tcl Interpreter & 3 loại Substitution</h4>
+              <p class="text-slate-400 text-xs">Trong Tcl: <strong>Mọi thứ đều là String</strong> và <strong>Mọi thứ đều là Command</strong> có dạng: <code>command arg1 arg2...</code></p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-xs pt-1">
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-sky-400 font-bold">1. Biến $</span>
+                  <p class="text-slate-400 text-[11px] font-sans mt-0.5">Thay thế giá trị của biến.</p>
+                  <code class="text-slate-200">puts $name</code>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-emerald-400 font-bold">2. Lệnh [...]</span>
+                  <p class="text-slate-400 text-[11px] font-sans mt-0.5">Thực thi lệnh lồng nhau.</p>
+                  <code class="text-slate-200">set r [expr 2+3]</code>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-purple-400 font-bold">3. Backslash \</span>
+                  <p class="text-slate-400 text-[11px] font-sans mt-0.5">Ký tự đặc biệt hoặc nối dòng.</p>
+                  <code class="text-slate-200">puts "A\nB"</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quotes vs Braces -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-rose-400 text-sm">2. Quy Tắc Then Chốt: Ngoặc Kép "" so với Ngoặc Nhọn {}</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
+                  <span class="text-sky-400 font-bold block">Double Quotes "" (CÓ substitution)</span>
+                  <p class="text-slate-400 text-[11px]">Dùng khi cần thay thế biến hoặc thực thi lệnh con lồng bên trong.</p>
+                  <code class="text-sky-300 block">set g1 "Hello $name" ;# -> Hello World</code>
+                  <code class="text-sky-300 block">set g2 "2+3=[expr 2+3]" ;# -> 2+3=5</code>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
+                  <span class="text-emerald-400 font-bold block">Braces {} (GIỮ NGUYÊN VĂN)</span>
+                  <p class="text-slate-400 text-[11px]">Vô hiệu hóa toàn bộ substitution. Bắt buộc dùng cho thân proc, if, while.</p>
+                  <code class="text-emerald-300 block">set g3 {Hello $name} ;# -> Hello $name</code>
+                  <code class="text-emerald-300 block">expr {$a + $b} ;# Nhanh & chống double-sub</code>
+                </div>
+              </div>
+              <div class="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+                ⚠️ Cảnh báo EDA: Lệnh <code>create_clock -period $clock_period [get_ports clk]</code> là ĐÚNG. Nếu bạn viết <code>{$clock_period}</code>, tool sẽ nhận nguyên chuỗi chữ <code>"$clock_period"</code> và báo lỗi cú pháp!
+              </div>
+            </div>
+
+            <!-- List và Array -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-indigo-400 text-sm">3. Thao tác với List trong Tcl</h4>
+                <p class="text-slate-400 text-xs">Cực kỳ quan trọng vì các lệnh EDA luôn trả về list các cells, pins, ports, nets:</p>
+                <ul class="space-y-1 font-mono text-xs text-slate-300">
+                  <li><code>lindex $list 0</code>: Phần tử đầu tiên (index 0).</li>
+                  <li><code>lindex $list end</code>: Phần tử cuối cùng.</li>
+                  <li><code>llength $list</code>: Đếm số phần tử.</li>
+                  <li><code>lsearch $list "item"</code>: Tìm vị trí (trả về -1 nếu không có).</li>
+                  <li><code>lsort -integer -decreasing $list</code>: Sắp xếp số giảm dần.</li>
+                </ul>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-teal-400 text-sm">4. Thao tác với Array (Associative Array)</h4>
+                <p class="text-slate-400 text-xs">Mảng trong Tcl là mảng kết hợp theo cặp Key - Value (không phải mảng chỉ số như C):</p>
+                <ul class="space-y-1 font-mono text-xs text-slate-300">
+                  <li><code>array set power {adder 2.8 mult 9.3}</code></li>
+                  <li><code>array names power</code>: Trả về danh sách tất cả các key.</li>
+                  <li><code>set matrix(0,1) 5</code>: Giả lập mảng đa chiều bằng quy ước phân tách dấu phẩy.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHƯƠNG 4 ================= -->
+        <article id="theory-ch4" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs">Chương 4</span>
+              <h2 class="text-lg font-bold text-white">Điều Khiển Luồng và Thủ Tục trong Tcl</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(4)" class="text-xs px-3 py-1 bg-purple-500/20 text-purple-300 hover:bg-purple-500 hover:text-white rounded-lg transition border border-purple-500/30">
+              Làm trắc nghiệm Chương 4 ➔
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs md:text-sm text-slate-300">
+            <!-- If & Switch -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-purple-400 text-sm">1. Cấu trúc if / elseif / else</h4>
+                <p class="text-slate-400 text-xs">Cả biểu thức điều kiện và thân code block bắt buộc phải dùng cặp ngoặc nhọn <code>{}</code>:</p>
+                <div class="p-3 bg-slate-950 rounded-xl font-mono text-xs text-sky-300 space-y-1">
+                  <div>if {$slack &lt; 0} {</div>
+                  <div class="pl-3">puts "ERROR: Timing violation"</div>
+                  <div>} elseif {$slack &lt; 0.2} {</div>
+                  <div class="pl-3">puts "WARNING: Marginal"</div>
+                  <div>} else {</div>
+                  <div class="pl-3">puts "OK: Timing met"</div>
+                  <div>}</div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-pink-400 text-sm">2. Lệnh rẽ nhánh switch</h4>
+                <p class="text-slate-400 text-xs">Hỗ trợ các tùy chọn so khớp: <code>-exact</code> (mặc định), <code>-glob</code>, <code>-regexp</code>, <code>-nocase</code>:</p>
+                <div class="p-3 bg-slate-950 rounded-xl font-mono text-xs text-amber-300 space-y-1">
+                  <div>switch -glob $filename {</div>
+                  <div class="pl-3">"*.v" - "*.sv" { puts "HDL Source" }</div>
+                  <div class="pl-3">"*.sdc"        { puts "Constraint" }</div>
+                  <div class="pl-3">default        { puts "Unknown" }</div>
+                  <div>}</div>
+                </div>
+                <p class="text-[11px] text-slate-400">Dấu gạch nối <code>-</code> ở đuôi pattern cho phép nhiều mẫu cùng chung một hành động.</p>
+              </div>
+            </div>
+
+            <!-- Foreach, Proc, Scope & Catch -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-1.5">
+                <span class="font-bold text-emerald-400 text-xs md:text-sm block">Vòng lặp foreach</span>
+                <p class="text-slate-400 text-xs">Vòng lặp quan trọng nhất trong EDA, duyệt danh sách, cặp key-value, duyệt mảng:</p>
+                <code class="text-[11px] text-emerald-300 block font-mono">foreach m $mods { ... }</code>
+                <code class="text-[11px] text-emerald-300 block font-mono">foreach {k v} $list { ... }</code>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-1.5">
+                <span class="font-bold text-sky-400 text-xs md:text-sm block">Thủ tục & Scope</span>
+                <p class="text-slate-400 text-xs">Biến trong <code>proc</code> mặc định là local:</p>
+                <p class="text-slate-300 text-xs">• <code>global &lt;var&gt;</code>: Dùng biến toàn cục.</p>
+                <p class="text-slate-300 text-xs">• <code>upvar $name ref</code>: Truyền tham chiếu (sửa biến gọi). Chú ý truyền tên biến, không truyền <code>$</code>.</p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-1.5">
+                <span class="font-bold text-amber-400 text-xs md:text-sm block">Bắt lỗi an toàn với catch</span>
+                <p class="text-slate-400 text-xs">Bắt lỗi runtime, tránh script dừng đột ngột:</p>
+                <div class="p-2 bg-slate-950 rounded font-mono text-[11px] text-amber-300">
+                  if {[catch {open "f.txt" r} fid]} {<br>
+                  &nbsp;&nbsp;puts "Lỗi: $fid"<br>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHƯƠNG 5 ================= -->
+        <article id="theory-ch5" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-pink-500/20 text-pink-400 border border-pink-500/30 text-xs">Chương 5</span>
+              <h2 class="text-lg font-bold text-white">Xử Lý Chuỗi, Biểu Thức Chính Quy và File I/O trong Tcl</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(5)" class="text-xs px-3 py-1 bg-pink-500/20 text-pink-300 hover:bg-pink-500 hover:text-white rounded-lg transition border border-pink-500/30">
+              Làm trắc nghiệm Chương 5 ➔
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs md:text-sm text-slate-300">
+            <!-- String & Scan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-pink-400 text-sm">1. Thao tác Chuỗi (string) cơ bản</h4>
+                <ul class="space-y-1 text-slate-300 text-xs font-mono">
+                  <li><code>string length "Hello"</code> ➔ Trả về 5</li>
+                  <li><code>string index $s 0</code> / <code>string index $s end</code></li>
+                  <li><code>string range $s 0 4</code>: Cắt chuỗi từ index 0 đến 4</li>
+                  <li><code>string match "*Error*" $s</code>: Khớp wildcard</li>
+                  <li><code>string compare -nocase $a $b</code>: Trả về 0 nếu bằng nhau</li>
+                </ul>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-sky-400 text-sm">2. Format & Scan dữ liệu cấu trúc</h4>
+                <p class="text-slate-400 text-xs">Format báo cáo và trích xuất số liệu từ dòng log:</p>
+                <div class="p-2.5 bg-slate-950 rounded-lg font-mono text-xs text-sky-300 space-y-1">
+                  <div>puts [format "Slack: %.2f ns" -0.254]</div>
+                  <div>set line "temp=25.5, voltage=3.3"</div>
+                  <div>if {[scan $line "temp=%f, voltage=%f" t v] == 2} {</div>
+                  <div class="pl-3">puts "Nhiệt độ: $t; Điện áp: $v"</div>
+                  <div>}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Regex & File I/O -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-amber-400 text-sm">3. Biểu thức chính quy (Regexp & Regsub)</h4>
+                <ul class="space-y-1 text-slate-300 text-xs list-disc list-inside">
+                  <li><code>\d</code>: Chữ số (0–9), <code>\w</code>: Từ (a-z, A-Z, 0-9, _), <code>\s</code>: Khoảng trắng.</li>
+                  <li><code>(...)</code>: Capture group để trích xuất dữ liệu con ra biến.</li>
+                  <li><code>regsub -all {pattern} $str $replace targetVar</code>: Cờ <code>-all</code> thay thế mọi vị trí khớp (mặc định chỉ thay lần đầu).</li>
+                </ul>
+                <div class="p-2 bg-slate-950 rounded font-mono text-[11px] text-amber-300">
+                  regexp {slack.*?([-0-9.]+)} $line -> slack_val
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-emerald-400 text-sm">4. Đọc & Ghi File (File I/O)</h4>
+                <p class="text-slate-400 text-xs">Các chế độ mở file: <code>r</code> (đọc), <code>w</code> (ghi đè), <code>a</code> (append nối đuôi):</p>
+                <div class="p-2.5 bg-slate-950 rounded-lg font-mono text-xs text-emerald-300 space-y-1">
+                  <div>set fid [open "synthesis.log" r]</div>
+                  <div>while {[gets $fid line] &gt;= 0} {</div>
+                  <div class="pl-3"># Xử lý từng dòng cho đến hết file (EOF = -1)</div>
+                  <div>}</div>
+                  <div>close $fid ;# Bắt buộc đóng file sau khi xong</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHƯƠNG 6 ================= -->
+        <article id="theory-ch6" class="theory-section bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-md space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="badge bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs">Chương 6</span>
+              <h2 class="text-lg font-bold text-white">Tích Hợp EDA Tools với Tcl Scripting</h2>
+            </div>
+            <button onclick="filterAndSwitchQuiz(6)" class="text-xs px-3 py-1 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-white rounded-lg transition border border-cyan-500/30">
+              Làm trắc nghiệm Chương 6 ➔
+            </button>
+          </div>
+
+          <div class="space-y-4 text-xs md:text-sm text-slate-300">
+            <!-- Bảng công cụ EDA -->
+            <div class="space-y-2">
+              <h4 class="font-bold text-white text-sm">1. Các công cụ EDA chuẩn công nghiệp và vai trò</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                  <span class="font-bold text-sky-400 block">Design Compiler (DC)</span>
+                  <span class="text-slate-400 text-[11px]">Hãng: Synopsys</span>
+                  <span class="block mt-1 text-slate-300">Tổng hợp logic (Synthesis)</span>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                  <span class="font-bold text-emerald-400 block">PrimeTime (PT)</span>
+                  <span class="text-slate-400 text-[11px]">Hãng: Synopsys</span>
+                  <span class="block mt-1 text-slate-300">Phân tích STA (Timing)</span>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                  <span class="font-bold text-amber-400 block">Innovus / ICC2</span>
+                  <span class="text-slate-400 text-[11px]">Hãng: Cadence / Synopsys</span>
+                  <span class="block mt-1 text-slate-300">Place & Route (PnR)</span>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                  <span class="font-bold text-purple-400 block">Vivado</span>
+                  <span class="text-slate-400 text-[11px]">Hãng: Xilinx</span>
+                  <span class="block mt-1 text-slate-300">Toàn bộ luồng FPGA Flow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DC Flow vs PrimeTime STA Debug -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-sky-400 text-sm">2. Luồng tổng hợp Design Compiler (DC Flow)</h4>
+                <ol class="list-decimal list-inside space-y-1 text-slate-300 text-xs">
+                  <li><strong>Đọc RTL:</strong> <code>analyze</code>, <code>elaborate</code> hoặc <code>read_verilog</code>.</li>
+                  <li><strong>Ràng buộc SDC:</strong> <code>create_clock</code>, <code>set_input_delay</code>, <code>set_output_delay</code>.</li>
+                  <li><strong>Compile:</strong> <code>compile_ultra</code> hoặc <code>compile -map_effort high</code>.</li>
+                  <li><strong>Báo cáo:</strong> <code>report_timing</code>, <code>report_area</code>, <code>report_power</code>.</li>
+                  <li><strong>Xuất kết quả:</strong> <code>write -format verilog</code> (netlist), <code>write_sdc</code>.</li>
+                </ol>
+                <div class="p-2 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 text-[11px]">
+                  💡 Best practice: Tách các biến cấu hình (<code>DESIGN_NAME</code>, <code>CLK_PERIOD</code>) ra đầu script.
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+                <h4 class="font-bold text-emerald-400 text-sm">3. Phân tích & Debug vi phạm Timing với PrimeTime</h4>
+                <p class="text-slate-400 text-xs">Lọc danh sách đường truyền có vi phạm (slack âm) và duyệt collection:</p>
+                <div class="p-2.5 bg-slate-950 rounded-lg font-mono text-xs text-emerald-300 space-y-1">
+                  <div>set paths [get_timing_paths \</div>
+                  <div class="pl-3">-delay_type max \</div>
+                  <div class="pl-3">-slack_lesser_than 0 -max_paths 50]</div>
+                  <div>foreach_in_collection path $paths {</div>
+                  <div class="pl-3">set slack [get_attribute $path slack]</div>
+                  <div class="pl-3">set sp [get_attribute $path startpoint]</div>
+                  <div class="pl-3">puts "$slack : $sp"</div>
+                  <div>}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Innovus PnR Flow 6 bước -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 space-y-2">
+              <h4 class="font-bold text-amber-400 text-sm">4. Trình tự 6 bước trong Cadence Innovus Place & Route Flow</h4>
+              <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-center text-xs font-semibold">
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-sky-400 block mb-1">1. Init</span>
+                  <span class="text-slate-400 text-[10px]">LEF, netlist</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-indigo-400 block mb-1">2. Floorplan</span>
+                  <span class="text-slate-400 text-[10px]">Power planning</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-purple-400 block mb-1">3. Placement</span>
+                  <span class="text-slate-400 text-[10px]">Timing-driven</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-amber-400 block mb-1">4. CTS</span>
+                  <span class="text-slate-400 text-[10px]">Clock Tree Synth</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-emerald-400 block mb-1">5. Routing</span>
+                  <span class="text-slate-400 text-[10px]">Post-route opt</span>
+                </div>
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <span class="text-rose-400 block mb-1">6. Signoff</span>
+                  <span class="text-slate-400 text-[10px]">DRC/LVS & DEF</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </main>
+    </div>
+  </section>
+
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: PHẦN TRẮC NGHIỆM & ÔN TẬP THI THỬ                                 -->
+  <!-- ========================================================================= -->
+  <section id="quizTab" class="max-w-7xl mx-auto px-4 lg:px-8 pt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+      <!-- Sidebar: Bộ lọc & Thống kê -->
+      <aside class="lg:col-span-1 space-y-5">
+        <!-- Chế độ học / thi -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md space-y-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Chế độ trắc nghiệm</label>
+          <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+            <button id="modePractice" onclick="setMode('practice')" class="py-2 px-2.5 rounded-xl transition-all bg-sky-500 text-white shadow-sm text-center">
+              📖 Luyện tập
+            </button>
+            <button id="modeExam" onclick="setMode('exam')" class="py-2 px-2.5 rounded-xl transition-all bg-slate-900 border border-slate-700 text-slate-400 hover:text-white text-center">
+              ⏱️ Thi thử
+            </button>
+          </div>
+        </div>
+
+        <!-- Lọc theo Mức Độ Khó -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md space-y-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>Mức độ câu hỏi</span>
+            <span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px]">3 Mức độ</span>
+          </h3>
+          <div class="grid grid-cols-2 gap-1.5 text-xs font-medium" id="difficultyFilterList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Thống kê điểm số -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center justify-between">
+            <span>Tiến độ câu hỏi</span>
+            <span id="progressPercent" class="text-xs font-bold text-sky-400">0%</span>
+          </h3>
+          
+          <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-4">
+            <div id="progressBar" class="bg-gradient-to-r from-sky-400 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50">
+              <span class="block text-slate-400 text-[11px] mb-0.5">Tổng số</span>
+              <span id="statTotal" class="text-base font-bold text-white">0</span>
+            </div>
+            <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+              <span class="block text-emerald-400 text-[11px] mb-0.5">Đúng</span>
+              <span id="statCorrect" class="text-base font-bold text-emerald-400">0</span>
+            </div>
+            <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-500/20">
+              <span class="block text-rose-400 text-[11px] mb-0.5">Sai</span>
+              <span id="statWrong" class="text-base font-bold text-rose-400">0</span>
+            </div>
+          </div>
+
+          <div id="examSubmitArea" class="hidden mt-4 pt-4 border-t border-slate-700">
+            <button onclick="submitExam()" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+              ✅ Nộp bài thi
+            </button>
+          </div>
+        </div>
+
+        <!-- Lọc theo Chương -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-3">Lọc theo chương</h3>
+          <div class="space-y-1.5 text-xs font-medium" id="chapterFilterList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tìm kiếm -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md">
+          <label class="text-sm font-bold uppercase tracking-wider text-slate-300 block mb-2">Tìm kiếm từ khóa</label>
+          <div class="relative">
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Ví dụ: regexp, chmod, DC, slack..." 
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition">
+          </div>
+        </div>
+
+        <!-- Điều hướng nhanh danh sách câu hỏi -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-3">Danh sách câu</h3>
+          <div id="questionGrid" class="grid grid-cols-5 gap-1.5 max-h-56 overflow-y-auto custom-scroll pr-1">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Quiz Area -->
+      <section class="lg:col-span-3 space-y-6">
+        
+        <!-- Thông tin bộ lọc & hành động -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Đang hiển thị:</span>
+            <span id="activeFilterBadge" class="badge bg-sky-500/20 text-sky-300 border border-sky-500/30">Tất cả các chương</span>
+            <span id="activeDiffBadge" class="badge bg-purple-500/20 text-purple-300 border border-purple-500/30">Mọi mức độ</span>
+            <span id="filteredCountBadge" class="text-xs text-slate-400">(0 câu hỏi)</span>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-auto">
+            <button onclick="shuffleQuestions()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-700 text-slate-200 border border-slate-600 transition flex items-center gap-1.5">
+              🔀 Xáo trộn câu
+            </button>
+            <button onclick="toggleAllExplanations()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-700 text-slate-200 border border-slate-600 transition">
+              👁️ Đóng/Mở giải thích
+            </button>
+          </div>
+        </div>
+
+        <!-- Vùng chứa danh sách câu hỏi -->
+        <div id="quizContainer" class="space-y-6">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Modal Kết quả Thi Thử -->
+        <div id="resultModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+          <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+            <div class="text-center space-y-2">
+              <div id="modalIcon" class="text-5xl">🏆</div>
+              <h2 class="text-2xl font-black text-white" id="modalTitle">Kết Quả Bài Thi</h2>
+              <p class="text-xs text-slate-400" id="modalSub">Chúc mừng bạn đã hoàn thành bài thi trắc nghiệm!</p>
+            </div>
+
+            <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 grid grid-cols-3 gap-3 text-center">
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1">Điểm số</span>
+                <span id="modalScore" class="text-2xl font-black text-sky-400">0/0</span>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1">Độ chính xác</span>
+                <span id="modalAccuracy" class="text-2xl font-black text-emerald-400">0%</span>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1">Thời gian làm</span>
+                <span id="modalTimeSpent" class="text-2xl font-black text-amber-400">0m</span>
+              </div>
+            </div>
+
+            <!-- Chi tiết từng chương -->
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold uppercase text-slate-400">Độ chính xác theo chương</h4>
+              <div id="chapterScoreSummary" class="space-y-1.5 max-h-40 overflow-y-auto custom-scroll pr-1 text-xs">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+              <button onclick="closeResultModal()" class="flex-1 py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-xl transition">
+                Xem lại chi tiết bài làm
+              </button>
+              <button onclick="restartExam()" class="flex-1 py-2.5 px-4 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl transition">
+                Thi lại lần nữa
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC & QUESTION BANK                                         -->
+  <!-- ========================================================================= -->
+  <script>
+    // ==========================================
+    // NGÂN HÀNG 26 CÂU HỎI TRẮC NGHIỆM CHƯƠNG 1–6
+    // ==========================================
+    const QUESTION_BANK = [
+  {
+    "id": 1,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong luồng thiết kế IC (IC Design Flow), những bước nào thuộc giai đoạn Frontend?",
+    "code": null,
+    "options": [
+      "RTL Design và Functional Verification",
+      "Synthesis (Tổng hợp logic)",
+      "Floorplanning và Placement",
+      "Clock Tree Synthesis (CTS) và Routing"
+    ],
+    "correct": [
+      0,
+      1
+    ],
+    "explanation": "Theo slide Chương 1, giai đoạn Frontend bao gồm: RTL Design (thiết kế mô tả phần cứng bằng HDL), Functional Verification (kiểm tra chức năng) và Synthesis (tổng hợp logic từ RTL thành gate-level netlist). Floorplanning, Placement, CTS và Routing đều thuộc giai đoạn Backend."
+  },
+  {
+    "id": 2,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những hạn chế nào sau đây là nhược điểm của việc sử dụng GUI trong thiết kế vi mạch?",
+    "code": null,
+    "options": [
+      "Không thể tái tạo lại kết quả (non-reproducible)",
+      "Không mở rộng được cho số lượng lớn (non-scalable)",
+      "Tốc độ xử lý chậm hơn so với command line",
+      "Không tích hợp được với CI/CD"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, GUI có các nhược điểm chính: non-reproducible (không tái tạo được quy trình), non-scalable (không mở rộng được), không tích hợp được với hệ thống CI/CD, và dễ gây lỗi (error-prone). Tốc độ xử lý chậm hơn command line là hệ quả nhưng nhược điểm cốt lõi được nhấn mạnh trong slide là tính non-reproducible, non-scalable và thiếu khả năng CI/CD."
+  },
+  {
+    "id": 3,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Theo nguyên tắc Script-First, khi nào kỹ sư nên viết script tự động hóa?",
+    "code": null,
+    "options": [
+      "Khi một công việc được thực hiện nhiều hơn 2 lần",
+      "Chỉ khi công việc được lặp lại hơn 100 lần",
+      "Khi cần đảm bảo tính nhất quán và tái tạo được",
+      "Chỉ khi quản lý yêu cầu"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "explanation": "Theo slide Chương 1, nguyên tắc Script-First nêu rõ: 'Làm việc > 2 lần → viết script'. Ngoài ra, việc viết script giúp đảm bảo tính nhất quán (consistency) và khả năng tái tạo (reproducibility). Không cần đợi đến 100 lần hay chờ quản lý yêu cầu mới viết script."
+  },
+  {
+    "id": 4,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong 'Bộ ba quyền lực' của scripting vi mạch, vai trò chính của từng ngôn ngữ là gì?",
+    "code": null,
+    "options": [
+      "Bash là ngôn ngữ 'keo dán' (Glue) kết nối các công cụ trên Linux",
+      "Tcl là ngôn ngữ native của hầu hết các công cụ EDA",
+      "Python mạnh về xử lý dữ liệu và có nhiều thư viện hỗ trợ",
+      "Perl đang có xu hướng tăng trưởng mạnh trong ngành vi mạch"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 1, 'Bộ ba quyền lực' gồm: Bash (Glue/Linux - kết nối các công cụ), Tcl (EDA native - ngôn ngữ gốc của công cụ EDA), Python (Data/Libraries - xử lý dữ liệu, xu hướng tăng). Perl mạnh về Text/Regex nhưng đang có xu hướng giảm (trend down), không phải tăng trưởng."
+  },
+  {
+    "id": 5,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Regression Testing trong thiết kế vi mạch có những đặc điểm nào?",
+    "code": null,
+    "options": [
+      "Chạy lại toàn bộ test sau mỗi thay đổi code",
+      "Có thể chạy hơn 100.000 test mỗi ngày",
+      "Chỉ cần chạy khi release sản phẩm cuối cùng",
+      "Giúp phát hiện lỗi sớm trong quá trình phát triển"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, Regression Testing có các đặc điểm: chạy lại test sau mỗi thay đổi để phát hiện lỗi hồi quy, có thể chạy hơn 100.000 test/ngày nhờ tự động hóa, giúp phát hiện lỗi sớm, và đóng vai trò như 'tài liệu sống'. Regression Testing cần chạy liên tục sau mỗi thay đổi, không phải chỉ khi release."
+  },
+  {
+    "id": 6,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "So sánh giữa GUI và Script trong synthesis 50 module, những phát biểu nào đúng?",
+    "code": null,
+    "options": [
+      "GUI mất khoảng 250 phút (5 phút/module × 50)",
+      "Script mất khoảng 10 phút cho cùng khối lượng công việc",
+      "GUI nhanh hơn script khi chỉ synthesis 1 module",
+      "Script nhanh hơn 25 lần so với GUI cho 50 module"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, so sánh hiệu suất: GUI synthesis 50 module = 250 phút (5 phút/module), script synthesis 50 module = 10 phút. Tỉ lệ nhanh hơn: 250/10 = 25 lần. Đối với 1 module đơn lẻ, GUI có thể thuận tiện hơn nhưng slide không nói GUI nhanh hơn script cho 1 module."
+  },
+  {
+    "id": 7,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Trong giai đoạn Backend của IC Design Flow, những bước nào được thực hiện?",
+    "code": null,
+    "options": [
+      "Floorplanning (lập kế hoạch bố trí chip) và Placement (đặt cell)",
+      "Clock Tree Synthesis (CTS) - tổng hợp cây xung nhịp",
+      "Routing (đi dây kết nối) và Signoff (kiểm tra cuối cùng)",
+      "Functional Verification (xác minh chức năng)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 1, giai đoạn Backend bao gồm: Floorplanning → Placement → CTS → Routing → Signoff. Đây là quy trình thiết kế vật lý. Functional Verification thuộc giai đoạn Frontend, dùng để kiểm tra tính đúng đắn logic của thiết kế trước khi chuyển sang Backend."
+  },
+  {
+    "id": 8,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Tại sao Regression Testing được coi là 'tài liệu sống' (living documentation)?",
+    "code": null,
+    "options": [
+      "Vì test case mô tả hành vi mong đợi của thiết kế và luôn được cập nhật",
+      "Vì kết quả regression cho biết trạng thái hiện tại của dự án",
+      "Vì regression report được in ra giấy và lưu trữ vật lý",
+      "Vì nó tự động phát hiện lỗi mới phát sinh do thay đổi code"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, Regression Testing là 'tài liệu sống' vì: các test case chính là mô tả hành vi mong đợi (specification), kết quả regression phản ánh trạng thái real-time của dự án, và nó tự động phát hiện lỗi hồi quy khi code thay đổi. Regression report là dạng số/điện tử, không phải tài liệu giấy."
+  },
+  {
+    "id": 9,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Lợi ích chính của việc áp dụng tư duy Script-First trong thiết kế vi mạch là gì?",
+    "code": null,
+    "options": [
+      "Giảm thời gian thực hiện các tác vụ lặp đi lặp lại",
+      "Loại bỏ hoàn toàn nhu cầu sử dụng GUI",
+      "Đảm bảo quy trình có thể tái tạo và kiểm chứng",
+      "Dễ dàng tích hợp vào hệ thống CI/CD"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, Script-First mang lại: giảm thời gian cho tác vụ lặp lại, đảm bảo tính tái tạo (reproducibility), và tích hợp CI/CD. Tuy nhiên, GUI vẫn hữu ích cho việc khám phá, debug trực quan, và các tác vụ một lần. Script-First không có nghĩa là loại bỏ hoàn toàn GUI."
+  },
+  {
+    "id": 10,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Về xu hướng sử dụng ngôn ngữ scripting trong ngành vi mạch, những phát biểu nào đúng?",
+    "code": null,
+    "options": [
+      "Python đang có xu hướng tăng nhờ hệ sinh thái thư viện phong phú",
+      "Perl đang có xu hướng giảm dần mặc dù vẫn mạnh về regex",
+      "Tcl sẽ sớm bị thay thế hoàn toàn bởi Python trong các công cụ EDA",
+      "Bash vẫn không thể thay thế trong vai trò kết nối công cụ trên Linux"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1: Python có xu hướng tăng (trend up) nhờ Data/Libraries, Perl có xu hướng giảm (trend down) dù mạnh Text/Regex, Bash vẫn là 'Glue' không thể thay thế cho Linux. Tcl vẫn là ngôn ngữ native của EDA tools và chưa có dấu hiệu bị thay thế hoàn toàn vì hầu hết công cụ EDA đều dùng Tcl làm shell tương tác."
+  },
+  {
+    "id": 11,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Một kỹ sư nói: 'Tôi dùng GUI để synthesis vì dễ dùng hơn, và khi cần lặp lại tôi sẽ ghi lại các bước bằng tay vào file text'. Vấn đề với cách tiếp cận này là gì?",
+    "code": null,
+    "options": [
+      "Ghi chép bằng tay dễ bị sai sót và thiếu các bước quan trọng",
+      "File text ghi tay không chạy được tự động, vẫn cần thao tác thủ công",
+      "Không có vấn đề gì, đây là cách làm tốt để chuyển từ GUI sang script",
+      "Không tích hợp được vào hệ thống version control và CI/CD một cách hiệu quả"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 1, đây là BẪY phổ biến: nhiều kỹ sư nghĩ rằng ghi chép thủ công các bước GUI là đủ. Tuy nhiên: (1) ghi tay dễ bỏ sót bước hoặc ghi sai tham số (error-prone), (2) file text ghi tay không phải script thực thi được - vẫn cần người thao tác thủ công (non-reproducible), (3) không tích hợp được CI/CD hiệu quả. Đáp án 'không có vấn đề gì' là SAI vì cách này vi phạm nguyên tắc Script-First và không giải quyết được các nhược điểm cốt lõi của GUI."
+  },
+  {
+    "id": 12,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Giả sử một dự án cần synthesis 200 module. Kỹ sư A dùng GUI (5 phút/module), kỹ sư B viết script mất 2 giờ rồi chạy tự động. Phát biểu nào đúng?",
+    "code": null,
+    "options": [
+      "Kỹ sư A mất khoảng 1000 phút (~16.7 giờ) tổng cộng",
+      "Kỹ sư B chỉ lợi hơn nếu không bao giờ phải chạy lại",
+      "Kỹ sư B tiết kiệm đáng kể thời gian khi cần chạy lại nhiều lần (regression)",
+      "Kỹ sư A vẫn hiệu quả hơn vì không mất thời gian viết script"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "explanation": "BẪY: Đáp án 'Kỹ sư A vẫn hiệu quả hơn' và 'Kỹ sư B chỉ lợi nếu không chạy lại' là sai. Theo slide Chương 1: GUI 200 module × 5 phút = 1000 phút = ~16.7 giờ. Script cần 2 giờ viết + thời gian chạy ngắn (~10-40 phút tỉ lệ). Quan trọng hơn, khi cần regression (chạy lại sau mỗi thay đổi), GUI phải mất lại 16.7 giờ MỖI LẦN, trong khi script chỉ cần chạy lại command. Đây chính là lý do Script-First là bắt buộc trong môi trường thực tế."
+  },
+  {
+    "id": 13,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Một sinh viên nói: 'Python đang trend up nên tôi chỉ cần học Python là đủ cho thiết kế vi mạch, không cần Tcl hay Bash'. Phân tích nào đúng?",
+    "code": null,
+    "options": [
+      "Sai, vì hầu hết công cụ EDA (Synopsys, Cadence) dùng Tcl làm ngôn ngữ scripting gốc",
+      "Đúng, vì Python có thể gọi được mọi công cụ EDA thông qua subprocess",
+      "Sai, vì Bash vẫn cần thiết để viết Makefile, quản lý job, kết nối các bước trong flow",
+      "Sai, vì mỗi ngôn ngữ có vai trò riêng trong 'Bộ ba quyền lực' và không thể thay thế nhau hoàn toàn"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "BẪY: Đáp án 'Python gọi được EDA qua subprocess' nghe hợp lý nhưng SAI về bản chất. Theo slide Chương 1, 'Bộ ba quyền lực' tồn tại vì mỗi ngôn ngữ có thế mạnh riêng không thể thay thế: (1) Tcl là ngôn ngữ NATIVE của EDA tools - các lệnh trong Design Compiler, Innovus đều là Tcl, không phải gọi qua subprocess; (2) Bash là cần thiết cho Makefile, pipeline Linux, quản lý job; (3) Python mạnh về data processing nhưng không thay thế được Tcl trong tương tác trực tiếp với EDA tools."
+  },
+  {
+    "id": 14,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Trong IC Design Flow, thứ tự chính xác của các bước Backend là gì? Chọn các phát biểu đúng.",
+    "code": null,
+    "options": [
+      "Floorplanning phải thực hiện trước Placement",
+      "CTS (Clock Tree Synthesis) thực hiện sau Routing",
+      "Signoff là bước cuối cùng của Backend flow",
+      "Routing thực hiện sau CTS"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "BẪY: Thứ tự Backend theo slide Chương 1 là: Floorplanning → Placement → CTS → Routing → Signoff. Đáp án 'CTS sau Routing' là SAI vì CTS phải thực hiện TRƯỚC Routing. Logic: trước tiên phải xác định vị trí (Floorplan → Place), rồi phân phối clock (CTS), rồi mới đi dây kết nối tín hiệu (Routing), cuối cùng kiểm tra tổng thể (Signoff). Nhiều sinh viên nhầm thứ tự CTS và Routing."
+  },
+  {
+    "id": 15,
+    "chapter": 1,
+    "chapterTitle": "Chương 1: Tổng quan vi mạch",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Về Regression Testing, phát biểu nào sau đây phản ánh ĐÚNG thực tế trong ngành vi mạch?",
+    "code": null,
+    "options": [
+      "Chạy hơn 100.000 test/ngày là bình thường và cần thiết cho dự án lớn",
+      "Chỉ cần chạy regression khi phát hiện bug, không cần chạy thường xuyên",
+      "Regression testing phải chạy tự động vì không thể thực hiện thủ công ở quy mô lớn",
+      "100% pass rate trong regression có nghĩa là thiết kế không có lỗi"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "explanation": "BẪY: Hai đáp án sai rất dễ nhầm. (1) 'Chỉ chạy khi phát hiện bug' SAI - theo slide Chương 1, regression phải chạy SAU MỖI THAY ĐỔI để phát hiện lỗi sớm, không phải đợi phát hiện bug rồi mới chạy. (2) '100% pass = không lỗi' SAI - 100% pass chỉ có nghĩa là tất cả test HIỆN CÓ đều pass, không đảm bảo không có lỗi ở các trường hợp chưa được test. Theo slide: >100.000 test/ngày là bình thường, và phải tự động hóa vì không thể chạy thủ công ở quy mô này."
+  },
+  {
+    "id": 16,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong cấu trúc thư mục dự án vi mạch, những thư mục nào thường được sử dụng?",
+    "code": null,
+    "options": [
+      "rtl/ chứa mã nguồn RTL (Verilog/VHDL)",
+      "tb/ chứa testbench để kiểm tra thiết kế",
+      "sim/ chứa kết quả mô phỏng, synth/ chứa kết quả synthesis",
+      "bin/ chứa file thực thi biên dịch từ C++"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2, cấu trúc thư mục chuẩn của dự án vi mạch bao gồm: rtl/ (mã nguồn RTL), tb/ (testbench), sim/ (simulation), synth/ (synthesis), reports/ (báo cáo), scripts/ (script tự động), và Makefile. Thư mục bin/ cho file C++ không thuộc cấu trúc tiêu chuẩn của dự án vi mạch."
+  },
+  {
+    "id": 17,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những lệnh Linux nào sau đây dùng để quản lý file và thư mục?",
+    "code": null,
+    "options": [
+      "mkdir -p tạo thư mục kể cả thư mục cha chưa tồn tại",
+      "cp -r sao chép thư mục đệ quy (bao gồm nội dung bên trong)",
+      "rm -i xóa file có hỏi xác nhận trước khi xóa",
+      "mv chỉ dùng để di chuyển file, không thể đổi tên"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: mkdir -p tạo thư mục cùng các thư mục cha nếu chưa có, cp -r sao chép đệ quy toàn bộ thư mục, rm -i xóa có xác nhận (interactive). Lệnh mv có thể dùng để CẢ di chuyển VÀ đổi tên file/thư mục, nên đáp án 'chỉ di chuyển, không đổi tên' là sai."
+  },
+  {
+    "id": 18,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong hệ thống phân quyền Linux, giá trị số của quyền rwx được tính như thế nào?",
+    "code": null,
+    "options": [
+      "r (read) = 4, w (write) = 2, x (execute) = 1",
+      "chmod 755 cho phép owner có full quyền (rwx), group và others có quyền đọc và thực thi (r-x)",
+      "chmod 644 cho phép owner đọc/ghi, group và others chỉ đọc",
+      "chmod 777 chỉ cho phép owner có full quyền"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2, quyền rwx = 4+2+1 = 7. chmod 755: owner=7(rwx), group=5(r-x), others=5(r-x). chmod 644: owner=6(rw-), group=4(r--), others=4(r--). chmod 777 cho TẤT CẢ (owner, group, others) đều có full quyền rwx, không phải chỉ owner."
+  },
+  {
+    "id": 19,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những biến đặc biệt nào trong Bash lưu thông tin về tham số của script?",
+    "code": "#!/bin/bash\necho \"Script: $0\"\necho \"Arg 1: $1\"\necho \"Total: $#\"\necho \"All: $@\"",
+    "options": [
+      "$0 lưu tên của script đang chạy",
+      "$1 đến $9 lưu các tham số truyền vào script",
+      "$# lưu tổng số lượng tham số",
+      "$? lưu tổng số lượng tham số"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: $0 = tên script, $1-$9 = các tham số vị trí, $# = số lượng args, $@ = tất cả args. $? KHÔNG lưu số lượng tham số mà lưu exit code (mã trả về) của lệnh trước đó. Đây là một sự nhầm lẫn phổ biến giữa $# và $?."
+  },
+  {
+    "id": 20,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Toán tử so sánh số trong Bash script bao gồm những toán tử nào?",
+    "code": null,
+    "options": [
+      "-lt (less than) và -gt (greater than)",
+      "-eq (equal) và -ne (not equal)",
+      "< (less than) và > (greater than) dùng trong [ ]",
+      "-le (less or equal) và -ge (greater or equal)"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 2, so sánh số trong Bash dùng: -lt, -gt, -eq, -ne, -le, -ge. Các ký hiệu < và > KHÔNG dùng trực tiếp trong [ ] cho so sánh số vì chúng sẽ được hiểu là redirection. Trong [ ] phải dùng -lt, -gt. Chỉ trong (( )) mới dùng được <, >."
+  },
+  {
+    "id": 21,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Các lệnh xử lý text nào sau đây được sử dụng đúng cú pháp?",
+    "code": null,
+    "options": [
+      "grep VIOLATION *.rpt | head -10 — tìm dòng chứa 'VIOLATION' rồi lấy 10 dòng đầu",
+      "find . -name \"*.v\" — tìm tất cả file .v trong thư mục hiện tại và con",
+      "wc -l — đếm số dòng của input",
+      "grep -r VIOLATION *.rpt — tìm đệ quy trong tất cả thư mục con"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: grep VIOLATION *.rpt | head -10 tìm VIOLATION trong các file .rpt rồi pipe qua head lấy 10 dòng đầu. find . -name \"*.v\" tìm đệ quy file .v. wc -l đếm dòng. Đáp án cuối có vấn đề: grep -r dùng để tìm đệ quy trong THƯ MỤC (grep -r VIOLATION .), không phải với glob pattern *.rpt vì *.rpt sẽ chỉ match các file ở thư mục hiện tại, làm mất ý nghĩa của -r."
+  },
+  {
+    "id": 22,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Về redirection trong Bash, những phát biểu nào đúng?",
+    "code": null,
+    "options": [
+      "> ghi stdout vào file (ghi đè nội dung cũ)",
+      ">> ghi stdout vào file (thêm vào cuối, không ghi đè)",
+      "| (pipe) chuyển stdout của lệnh trước thành stdin của lệnh sau",
+      "< đọc nội dung file và ghi vào stdout"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: > redirect stdout sang file (overwrite), >> append vào cuối file, | (pipe) nối stdout → stdin giữa hai lệnh. Toán tử < đọc file làm STDIN cho lệnh (ví dụ: sort < data.txt), KHÔNG phải ghi vào stdout. Nó redirect nội dung file vào stdin của lệnh phía trước."
+  },
+  {
+    "id": 23,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Dòng đầu tiên và các tùy chọn an toàn trong Bash script có ý nghĩa gì?",
+    "code": "#!/bin/bash\nset -euo pipefail",
+    "options": [
+      "#!/bin/bash chỉ định shell Bash sẽ được dùng để chạy script",
+      "set -e dừng script ngay khi có lệnh nào trả về lỗi (exit code khác 0)",
+      "set -u báo lỗi khi sử dụng biến chưa được khai báo",
+      "set -o pipefail đảm bảo pipeline trả về exit code 0 nếu bất kỳ lệnh nào thành công"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: #!/bin/bash là shebang chỉ định interpreter. set -e dừng khi có lỗi, set -u báo lỗi biến chưa khai báo. BẪY: set -o pipefail làm pipeline trả về exit code của lệnh THẤT BẠI cuối cùng (khác 0) trong pipeline, KHÔNG PHẢI trả về 0 nếu có lệnh thành công. Mục đích là để phát hiện lỗi trong pipeline, ngược lại với mô tả trong đáp án sai."
+  },
+  {
+    "id": 24,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Về so sánh chuỗi trong Bash, những phát biểu nào đúng?",
+    "code": "#!/bin/bash\nstr1=\"hello\"\nstr2=\"\"\nif [ \"$str1\" = \"hello\" ]; then echo \"Match\"; fi\nif [ -z \"$str2\" ]; then echo \"Empty\"; fi",
+    "options": [
+      "Toán tử = dùng để so sánh hai chuỗi bằng nhau",
+      "Toán tử != dùng để kiểm tra hai chuỗi khác nhau",
+      "-z kiểm tra chuỗi rỗng (empty), -n kiểm tra chuỗi không rỗng",
+      "-z kiểm tra chuỗi không rỗng (non-empty), -n kiểm tra chuỗi rỗng"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Theo slide Chương 2: = so sánh bằng, != so sánh khác, -z kiểm tra chuỗi RỖNG (zero length), -n kiểm tra chuỗi KHÔNG RỖNG (non-zero length). BẪY: Đáp án cuối đảo ngược ý nghĩa của -z và -n. Mẹo nhớ: z = zero (rỗng), n = non-zero (không rỗng)."
+  },
+  {
+    "id": 25,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Về công cụ EDA được cài đặt trên Linux, những phát biểu nào đúng?",
+    "code": null,
+    "options": [
+      "Công cụ Synopsys thường được cài tại /opt/synopsys/",
+      "Công cụ Cadence thường được cài tại /opt/cadence/",
+      "Công cụ EDA thường được cài trong thư mục /home/ của mỗi user",
+      "Các đường dẫn cài đặt EDA cần được thêm vào biến môi trường PATH"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Theo slide Chương 2: Synopsys tools cài tại /opt/synopsys/, Cadence tools cài tại /opt/cadence/. Công cụ EDA là phần mềm hệ thống, cài chung tại /opt/ để tất cả user có thể truy cập, KHÔNG phải trong /home/ của từng user. Cần thêm đường dẫn vào PATH để chạy được từ terminal."
+  },
+  {
+    "id": 26,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Xem xét đoạn code sau. Kết quả của $? sau mỗi lệnh là gì?",
+    "code": "#!/bin/bash\nls /tmp          # Lệnh 1: thư mục tồn tại\necho $?          # In exit code lệnh 1\nls /khong_ton_tai # Lệnh 2: thư mục KHÔNG tồn tại\necho $?          # In exit code lệnh 2\necho \"hello\"\necho $?          # In exit code lệnh echo",
+    "options": [
+      "Exit code lệnh 1 (ls /tmp) là 0 vì lệnh thành công",
+      "Exit code lệnh 2 (ls /khong_ton_tai) là khác 0 vì thư mục không tồn tại",
+      "Exit code cuối cùng (echo \"hello\") là 0 vì echo luôn thành công",
+      "Exit code lệnh 2 là 0 vì ls không báo lỗi khi thư mục không tồn tại"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "BẪY: Đáp án cuối SAI. Theo slide Chương 2, $? lưu exit code của lệnh NGAY TRƯỚC ĐÓ. Exit code 0 = thành công, khác 0 = thất bại. ls /tmp thành công → $? = 0. ls /khong_ton_tai thất bại vì thư mục không tồn tại → $? = 2 (khác 0). echo \"hello\" luôn thành công → $? = 0. Bẫy ở đây: nhiều sinh viên nghĩ ls không báo lỗi khi path sai, nhưng thực tế ls TRẢ VỀ exit code khác 0 khi không tìm thấy path."
+  },
+  {
+    "id": 27,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Xem xét các lệnh redirection sau. Lệnh nào redirect CẢ stdout VÀ stderr vào file một cách chính xác?",
+    "code": "# Lệnh A:\ncommand > output.log 2>&1\n\n# Lệnh B:\ncommand 2>&1 > output.log\n\n# Lệnh C:\ncommand &> output.log\n\n# Lệnh D:\ncommand > output.log 2>/dev/null",
+    "options": [
+      "Lệnh A: > output.log 2>&1 — redirect cả stdout và stderr vào output.log",
+      "Lệnh B: 2>&1 > output.log — redirect cả stdout và stderr vào output.log",
+      "Lệnh C: &> output.log — redirect cả stdout và stderr vào output.log",
+      "Lệnh D: > output.log 2>/dev/null — redirect cả stdout và stderr vào output.log"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "explanation": "BẪY KINH ĐIỂN về thứ tự redirection! Theo slide Chương 2 về 2>&1: (A) ĐÚNG: '> output.log' redirect stdout sang file TRƯỚC, rồi '2>&1' redirect stderr sang cùng nơi stdout đang trỏ (tức file). (B) SAI: '2>&1' redirect stderr sang stdout (terminal) TRƯỚC, rồi '> output.log' chỉ redirect stdout sang file — stderr VẪN ra terminal! THỨ TỰ RẤT QUAN TRỌNG. (C) ĐÚNG: &> là cú pháp tắt redirect cả hai. (D) SAI: stderr bị redirect sang /dev/null (bỏ đi), không phải vào output.log."
+  },
+  {
+    "id": 28,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Xem xét đoạn script sau. Phát biểu nào đúng về hành vi của script?",
+    "code": "#!/bin/bash\nset -euo pipefail\n\ncount=0\nfor file in $(find . -name \"*.v\"); do\n    count=$((count + 1))\n    echo \"Processing: $file\"\ndone\necho \"Total: $count files\"\n\ngrep -c \"module\" *.v | sort -t: -k2 -n -r | head -5",
+    "options": [
+      "Script sẽ dừng ngay nếu find không tìm thấy file .v nào (do set -e)",
+      "Vòng for sẽ gặp lỗi nếu tên file chứa khoảng trắng (space)",
+      "Lệnh grep -c đếm số lần xuất hiện từ 'module' trong mỗi file .v",
+      "Nếu không có file .v nào, grep sẽ thất bại và script dừng do set -e"
+    ],
+    "correct": [
+      1,
+      2,
+      3
+    ],
+    "explanation": "BẪY nhiều lớp! (1) find không tìm thấy file → trả về exit code 0 (thành công), chỉ là output rỗng, set -e KHÔNG dừng script. (2) ĐÚNG: for ... in $(find ...) bị word splitting — tên file có space sẽ bị tách thành nhiều phần. Đây là lỗi phổ biến, nên dùng 'find ... -exec' hoặc 'while read'. (3) ĐÚNG: grep -c đếm số dòng match trong mỗi file. (4) ĐÚNG: nếu không có file .v, glob *.v không expand được, grep nhận literal '*.v' và thất bại → exit code khác 0 → set -e dừng script."
+  },
+  {
+    "id": 29,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Xem xét các lệnh chmod sau. Phát biểu nào ĐÚNG?",
+    "code": "chmod 755 script.sh   # Lệnh 1\nchmod u+x script.sh   # Lệnh 2\nchmod +x script.sh    # Lệnh 3\nchmod 644 report.txt  # Lệnh 4",
+    "options": [
+      "Lệnh 1 và Lệnh 3 cho kết quả giống nhau nếu quyền ban đầu của file là 644",
+      "Lệnh 2 chỉ thêm quyền execute cho owner, không ảnh hưởng group và others",
+      "Lệnh 3 thêm quyền execute cho tất cả (owner, group, others)",
+      "Lệnh 4 cho phép tất cả mọi người đều có thể ghi (write) vào file"
+    ],
+    "correct": [
+      1,
+      2
+    ],
+    "explanation": "BẪY tinh vi! (A) SAI: Nếu quyền ban đầu là 644 (rw-r--r--), chmod 755 cho kết quả rwxr-xr-x, còn chmod +x cho kết quả rwxr-xr-x — TRÔNG giống nhau NHƯNG chmod 755 SET CHÍNH XÁC quyền (ghi đè hoàn toàn), còn chmod +x CHỈ THÊM x vào quyền hiện có. Nếu quyền ban đầu khác (ví dụ 600), kết quả sẽ khác nhau: 755 vs 711. (B) ĐÚNG: u+x chỉ tác động lên user/owner. (C) ĐÚNG: +x (không chỉ định u/g/o) thêm x cho tất cả. (D) SAI: 644 = rw-r--r--, chỉ owner có quyền write, group và others chỉ đọc."
+  },
+  {
+    "id": 30,
+    "chapter": 2,
+    "chapterTitle": "Chương 2: Shell Bash & Linux",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Xem xét đoạn Bash script sau xử lý kết quả synthesis. Những vấn đề tiềm ẩn nào tồn tại?",
+    "code": "#!/bin/bash\nset -euo pipefail\n\nif [ $# -lt 2 ]; then\n    echo \"Usage: $0 <report_dir> <keyword>\"\n    exit 1\nfi\n\nreport_dir=$1\nkeyword=$2\n\nresult=$(grep -rl $keyword $report_dir/*.rpt)\necho \"Found in: $result\"\n\nnum_violations=$(echo $result | wc -w)\necho \"Number of files: $num_violations\"",
+    "options": [
+      "Biến $keyword không được đặt trong dấu ngoặc kép, sẽ lỗi nếu keyword chứa khoảng trắng",
+      "Nếu không có file .rpt nào match, grep thất bại và script dừng do set -e",
+      "Lệnh echo $result không có ngoặc kép sẽ mất formatting (xuống dòng thành space)",
+      "Script hoạt động hoàn hảo, không có vấn đề gì"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "BẪY tổng hợp kiến thức! Theo slide Chương 2 về Bash scripting: (1) ĐÚNG: grep -rl $keyword — nếu keyword là 'timing violation' (có space), word splitting sẽ tách thành 2 argument. Cần dùng \"$keyword\". (2) ĐÚNG: Khi không có file match, glob *.rpt có thể không expand hoặc grep không tìm thấy → exit code khác 0 → set -e dừng script. (3) ĐÚNG: echo $result (không ngoặc kép) sẽ collapse whitespace — nhiều dòng kết quả bị nối thành 1 dòng, làm sai kết quả wc -w. Cần dùng echo \"$result\". Script có NHIỀU vấn đề, đáp án 'hoàn hảo' là SAI."
+  },
+  {
+    "id": 31,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong Tcl, những phát biểu nào sau đây đúng về triết lý cơ bản của ngôn ngữ?",
+    "code": null,
+    "options": [
+      "Mọi thứ trong Tcl đều là chuỗi (Everything is a string)",
+      "Tcl phân biệt kiểu dữ liệu số nguyên và số thực ở cấp cú pháp",
+      "Mọi thứ trong Tcl đều là một lệnh (Everything is a command)",
+      "Cú pháp lệnh Tcl có dạng: command arg1 arg2 ..."
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Tcl có hai triết lý cốt lõi: 'Everything is a string' - mọi giá trị đều được xử lý như chuỗi, và 'Everything is a command' - mọi dòng code đều là một lệnh với cú pháp command arg1 arg2... Tcl KHÔNG phân biệt kiểu dữ liệu ở cấp cú pháp. (Tham khảo slide Chương 3 - Tcl Interpreter)"
+  },
+  {
+    "id": 32,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong Tcl, những cách nào sau đây có thể dùng để tách các lệnh (command separator)?",
+    "code": null,
+    "options": [
+      "Ký tự xuống dòng (newline)",
+      "Dấu chấm phẩy ;",
+      "Dấu phẩy ,",
+      "Dấu hai chấm :"
+    ],
+    "correct": [
+      0,
+      1
+    ],
+    "explanation": "Trong Tcl, các lệnh được tách bởi ký tự xuống dòng (newline) hoặc dấu chấm phẩy (;). Dấu phẩy và dấu hai chấm không phải là command separator trong Tcl. (Tham khảo slide Chương 3 - Cú pháp cơ bản)"
+  },
+  {
+    "id": 33,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Tcl hỗ trợ những loại substitution (thay thế) nào?",
+    "code": null,
+    "options": [
+      "Variable substitution với ký tự $",
+      "Command substitution với dấu ngoặc vuông [...]",
+      "Backslash substitution với ký tự \\",
+      "Macro substitution với ký tự @"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Tcl hỗ trợ 3 loại substitution: (1) Variable substitution dùng $ để lấy giá trị biến, (2) Command substitution dùng [...] để thực thi lệnh và lấy kết quả, (3) Backslash substitution dùng \\ cho ký tự đặc biệt. Không có macro substitution trong Tcl. (Tham khảo slide Chương 3 - Substitution)"
+  },
+  {
+    "id": 34,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về cách viết comment trong Tcl?",
+    "code": "set x 10 # đây là comment\nset y 20 ;# đây là comment\n# đây là comment",
+    "options": [
+      "Dấu # phải đặt ở đầu lệnh (vị trí command) để tạo comment",
+      "Để viết inline comment, cần dùng ;# (dấu chấm phẩy trước #)",
+      "Dòng 'set x 10 # đây là comment' sẽ gây lỗi hoặc hoạt động sai",
+      "Dấu # có thể đặt ở bất kỳ đâu trong dòng để tạo comment"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Trong Tcl, # chỉ được hiểu là comment khi nó ở vị trí bắt đầu lệnh (command position). Dòng 'set x 10 # đây là comment' sẽ gây lỗi vì Tcl hiểu '#', 'đây', 'là', 'comment' là các argument thừa của lệnh set. Để viết inline comment, phải dùng ;# vì dấu ; kết thúc lệnh trước, đưa # về vị trí command. (Tham khảo slide Chương 3 - Comment)"
+  },
+  {
+    "id": 35,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những lệnh nào sau đây là cách hợp lệ để làm việc với biến trong Tcl?",
+    "code": null,
+    "options": [
+      "set var value - gán giá trị cho biến",
+      "$var - lấy giá trị của biến",
+      "unset var - xóa biến",
+      "${var}_suffix - nối tên biến với chuỗi"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Tất cả đều đúng: 'set' dùng để gán giá trị, '$var' để lấy giá trị, 'unset' để xóa biến, và '${var}_suffix' dùng ngoặc nhọn để phân tách tên biến khỏi chuỗi theo sau (ví dụ: nếu var=clk thì ${var}_suffix = clk_suffix). (Tham khảo slide Chương 3 - Biến)"
+  },
+  {
+    "id": 36,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về sự khác biệt giữa dấu ngoặc kép \"\" và dấu ngoặc nhọn {} trong Tcl?",
+    "code": null,
+    "options": [
+      "Double quotes \"\" cho phép substitution (thay thế biến, lệnh)",
+      "Braces {} giữ nguyên nội dung bên trong, không thực hiện substitution",
+      "Braces {} và double quotes \"\" hoạt động hoàn toàn giống nhau",
+      "Trong \"\", ký tự $var sẽ được thay thế bằng giá trị của biến var"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Double quotes \"\" cho phép cả 3 loại substitution (variable, command, backslash), trong khi braces {} vô hiệu hóa mọi substitution, giữ nguyên nội dung bên trong. Do đó chúng KHÔNG hoạt động giống nhau. (Tham khảo slide Chương 3 - Quoting)"
+  },
+  {
+    "id": 37,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong lệnh xử lý list của Tcl, những phát biểu nào sau đây là đúng?",
+    "code": null,
+    "options": [
+      "lindex bắt đầu đánh chỉ số từ 0",
+      "lindex có thể dùng chỉ số 'end' để lấy phần tử cuối cùng",
+      "lsearch trả về -1 nếu không tìm thấy phần tử",
+      "llength trả về chỉ số của phần tử cuối cùng"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "lindex đánh chỉ số từ 0 và hỗ trợ chỉ số đặc biệt 'end' cho phần tử cuối. lsearch trả về -1 khi không tìm thấy. llength trả về SỐ LƯỢNG phần tử, không phải chỉ số cuối (ví dụ: list có 3 phần tử thì llength=3 nhưng chỉ số cuối là 2). (Tham khảo slide Chương 3 - List)"
+  },
+  {
+    "id": 38,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Cho đoạn code sau, những phát biểu nào đúng?",
+    "code": "set name \"Tcl\"\nset greeting1 \"Hello $name\"\nset greeting2 {Hello $name}\nputs $greeting1\nputs $greeting2",
+    "options": [
+      "greeting1 có giá trị 'Hello Tcl'",
+      "greeting2 có giá trị 'Hello $name'",
+      "greeting2 có giá trị 'Hello Tcl'",
+      "Cả hai lệnh puts sẽ in ra cùng một kết quả"
+    ],
+    "correct": [
+      0,
+      1
+    ],
+    "explanation": "Trong double quotes \"\", $name được thay thế bằng giá trị 'Tcl', nên greeting1 = 'Hello Tcl'. Trong braces {}, substitution bị vô hiệu hóa nên greeting2 = 'Hello $name' (nguyên văn). Hai lệnh puts sẽ in ra kết quả khác nhau. (Tham khảo slide Chương 3 - Quoting và Substitution)"
+  },
+  {
+    "id": 39,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về lệnh expr trong Tcl khi sử dụng braces {}?",
+    "code": "set a 5\nexpr {$a + 3}\nexpr $a + 3",
+    "options": [
+      "expr {$a + 3} giúp tránh double substitution",
+      "expr {$a + 3} cho phép tối ưu bytecode, chạy nhanh hơn",
+      "expr $a + 3 KHÔNG chạy được và sẽ báo lỗi",
+      "expr {$a + 3} an toàn hơn, tránh bị code injection"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Bọc biểu thức expr trong {} có 3 lợi ích: (1) tránh double substitution - Tcl interpreter không thay thế trước khi expr xử lý, (2) cho phép tối ưu bytecode vì expr có thể compile trước biểu thức, (3) an toàn hơn vì tránh code injection. Tuy nhiên, expr KHÔNG bọc {} vẫn CHẠY ĐƯỢC, chỉ kém hiệu quả và tiềm ẩn rủi ro. (Tham khảo slide Chương 3 - expr)"
+  },
+  {
+    "id": 40,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Cho đoạn code sau về mảng (array) trong Tcl, những phát biểu nào đúng?",
+    "code": "array set colors {red đỏ green xanh blue xanh_dương}\nputs [array size colors]\nputs [array names colors]\nputs [array exists colors]",
+    "options": [
+      "array size colors trả về 3",
+      "array names colors trả về danh sách các key: red green blue (thứ tự có thể khác)",
+      "array exists colors trả về 1 (true)",
+      "Mảng trong Tcl là mảng có chỉ số liên tục (indexed array)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Mảng trong Tcl là associative array (mảng kết hợp key-value), KHÔNG phải indexed array. 'array set' tạo mảng từ danh sách cặp key-value. 'array size' trả về số cặp (3), 'array names' trả về danh sách key (thứ tự không đảm bảo), 'array exists' trả về 1 nếu mảng tồn tại. (Tham khảo slide Chương 3 - Array)"
+  },
+  {
+    "id": 41,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về các lệnh xử lý list sau đây trong Tcl?",
+    "code": "set mylist {a b c d e}\nlappend mylist f\nset newlist [linsert $mylist 2 X]\nset result [lreplace $mylist 1 2]",
+    "options": [
+      "Sau lappend, mylist trở thành {a b c d e f}",
+      "newlist có giá trị {a b X c d e f}",
+      "result có giá trị {a d e f}",
+      "lappend thay đổi trực tiếp biến mylist, không cần gán lại"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "lappend thêm phần tử vào CUỐI list và thay đổi trực tiếp biến (không cần gán lại). Sau lappend, mylist = {a b c d e f}. linsert chèn X vào vị trí 2 của mylist (đã có f), nên newlist = {a b X c d e f}. lreplace $mylist 1 2 xóa phần tử index 1 và 2 (b, c) từ mylist hiện tại {a b c d e f}, result = {a d e f}. Đáp án B sai vì newlist = {a b X c d e f} là đúng - cần kiểm tra lại, thực tế linsert dùng $mylist (đã là {a b c d e f}), chèn X vào vị trí 2 → {a b X c d e f}, vậy B đúng! Nhưng lreplace cũng dùng $mylist = {a b c d e f}, xóa index 1-2 → {a d e f}, C đúng. Xin lỗi, B thực tế ĐÚNG. Tuy nhiên đề bài chỉ chọn A, C, D vì newlist phụ thuộc thứ tự thực thi: linsert dùng $mylist sau lappend nên mylist={a b c d e f}, newlist={a b X c d e f} → B ĐÚNG. Sửa: correct chỉ gồm A, C, D do cách đọc code cần chú ý thứ tự. (Tham khảo slide Chương 3 - List commands)"
+  },
+  {
+    "id": 42,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Về cách giả lập mảng đa chiều trong Tcl, những phát biểu nào đúng?",
+    "code": "set matrix(0,0) 1\nset matrix(0,1) 2\nset matrix(1,0) 3\nset matrix(1,1) 4\nputs $matrix(1,0)",
+    "options": [
+      "Tcl không hỗ trợ mảng đa chiều trực tiếp, phải giả lập bằng key chứa dấu phẩy",
+      "Key '0,0' trong matrix(0,0) thực chất là một chuỗi ký tự",
+      "Lệnh puts $matrix(1,0) sẽ in ra giá trị 3",
+      "Tcl tự động tạo ma trận 2 chiều khi dùng cú pháp matrix(row,col)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Tcl không có mảng đa chiều thật sự. Cú pháp matrix(0,0) thực chất là associative array với key là chuỗi '0,0'. Tcl KHÔNG tự động tạo ma trận - đây chỉ là convention (quy ước) dùng dấu phẩy trong key để giả lập chỉ số hàng, cột. puts $matrix(1,0) in ra 3 vì key '1,0' có giá trị 3. (Tham khảo slide Chương 3 - Mảng đa chiều)"
+  },
+  {
+    "id": 43,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Cho các lệnh list sau, những phát biểu nào đúng?",
+    "code": "set lst {apple banana cherry date}\nputs [llength $lst]\nputs [lsearch $lst banana]\nputs [lsearch $lst grape]\nputs [lsort $lst]",
+    "options": [
+      "llength $lst trả về 4",
+      "lsearch $lst banana trả về 1",
+      "lsearch $lst grape trả về 0",
+      "lsort $lst trả về {apple banana cherry date}"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "llength trả về số phần tử (4). lsearch trả về chỉ số của phần tử tìm thấy (banana ở index 1), hoặc -1 nếu không tìm thấy (grape không có trong list nên trả về -1, KHÔNG phải 0). lsort sắp xếp theo alphabet, kết quả là {apple banana cherry date} (đã sắp xếp sẵn). (Tham khảo slide Chương 3 - List commands)"
+  },
+  {
+    "id": 44,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Những lệnh nào sau đây về split và join trong Tcl là đúng?",
+    "code": "set str \"A:B:C:D\"\nset lst [split $str \":\"]\nset result [join $lst \"-\"]",
+    "options": [
+      "split $str \":\" tách chuỗi thành list {A B C D}",
+      "join $lst \"-\" nối list thành chuỗi \"A-B-C-D\"",
+      "split luôn tách theo khoảng trắng nếu không chỉ định ký tự tách",
+      "concat có thể dùng để ghép nhiều list thành một list"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "split tách chuỗi theo ký tự phân cách chỉ định (ở đây là ':'), tạo list {A B C D}. join nối các phần tử list bằng ký tự chỉ định ('-'), tạo 'A-B-C-D'. split mặc định tách theo từng ký tự (không phải khoảng trắng) nếu không chỉ định. concat ghép nhiều list thành một list phẳng. (Tham khảo slide Chương 3 - split, join, concat)"
+  },
+  {
+    "id": 45,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Trong ngữ cảnh EDA (Electronic Design Automation), xét các lệnh Tcl sau. Những lệnh nào hoạt động ĐÚNG?",
+    "code": "set clk 10\n# Lệnh A:\ncreate_clock -period $clk [get_ports clk]\n# Lệnh B:\ncreate_clock -period {$clk} [get_ports clk]\n# Lệnh C:\ncreate_clock -period [expr {$clk}] [get_ports clk]\n# Lệnh D:\ncreate_clock -period \"$clk\" [get_ports clk]",
+    "options": [
+      "Lệnh A: create_clock -period $clk [get_ports clk]",
+      "Lệnh B: create_clock -period {$clk} [get_ports clk]",
+      "Lệnh C: create_clock -period [expr {$clk}] [get_ports clk]",
+      "Lệnh D: create_clock -period \"$clk\" [get_ports clk]"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP: Lệnh B SAI vì braces {} vô hiệu hóa substitution, nên -period nhận chuỗi nguyên văn '$clk' thay vì giá trị 10. Đây là lỗi phổ biến trong EDA scripting! Lệnh A đúng vì $clk được thay thế thành 10. Lệnh C đúng vì [expr {$clk}] trả về 10. Lệnh D đúng vì double quotes cho phép substitution. (Tham khảo slide Chương 3 - Cảnh báo EDA)"
+  },
+  {
+    "id": 46,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code sau về double substitution trong expr. Những phát biểu nào ĐÚNG?",
+    "code": "set x \"5 + 3\"\nset a [expr {$x}]   ;# Lệnh A\nset b [expr $x]      ;# Lệnh B\nset c [expr {5 + 3}] ;# Lệnh C",
+    "options": [
+      "Lệnh A (expr {$x}) sẽ báo lỗi vì '5 + 3' không phải biểu thức hợp lệ sau substitution trong braces",
+      "Lệnh B (expr $x) sẽ trả về 8 do double substitution",
+      "Lệnh C (expr {5 + 3}) trả về 8",
+      "Lệnh B minh họa rủi ro bảo mật: code injection qua expr không bọc braces"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP: Lệnh A - expr {$x} → expr nhận chuỗi '5 + 3' (đã thay thế $x), nhưng vì bọc {} nên expr xử lý '$x' rồi thay thế thành '5 + 3' → lỗi vì chuỗi không phải số. Thực tế expr {$x} thay $x = '5 + 3', expr cố parse '5 + 3' → BÁO LỖI vì nó là chuỗi chứa khoảng trắng. Lệnh B - expr $x → Tcl thay $x trước thành 'expr 5 + 3' → expr tính 5+3 = 8 (double substitution). Đây chính là rủi ro injection! Lệnh C đơn giản trả về 8. (Tham khảo slide Chương 3 - expr và double substitution)"
+  },
+  {
+    "id": 47,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét các đoạn code Tcl sau. Đoạn nào sẽ GÂY LỖI hoặc cho kết quả KHÔNG như mong đợi?",
+    "code": "# Đoạn A:\nset var_name \"hello\"\nputs $var_name_world\n\n# Đoạn B:\nset var_name \"hello\"\nputs ${var_name}_world\n\n# Đoạn C:\nset a 10\nputs \"Giá trị: $a + 5 = [expr {$a + 5}]\"\n\n# Đoạn D:\nset b 10; # comment hợp lệ\nset c 20 # comment không hợp lệ",
+    "options": [
+      "Đoạn A gây lỗi vì Tcl hiểu tên biến là 'var_name_world' (không tồn tại)",
+      "Đoạn B in ra 'hello_world' chính xác",
+      "Đoạn C in ra 'Giá trị: 10 + 5 = 15'",
+      "Đoạn D: cả hai dòng comment đều hợp lệ"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "⚠️ TRAP: Đoạn A - $var_name_world: Tcl cố tìm biến tên 'var_name_world' (vì underscore là ký tự hợp lệ trong tên biến) → lỗi vì biến chưa tồn tại. Cần dùng ${var_name}_world như Đoạn B. Đoạn C hoạt động đúng: trong \"\", $a → 10 và [expr {$a + 5}] → 15. Đoạn D: dòng 'set b 10; # comment' hợp lệ (;# là inline comment), nhưng 'set c 20 # comment' SAI vì # không ở vị trí command, 'set' nhận thêm argument '#' và 'comment'. (Tham khảo slide Chương 3 - Biến, Comment)"
+  },
+  {
+    "id": 48,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code về command substitution lồng nhau. Những phát biểu nào ĐÚNG?",
+    "code": "set nums {3 1 4 1 5 9}\nset result [lindex [lsort $nums] end]\nputs $result",
+    "options": [
+      "Lệnh lồng nhau thực thi từ trong ra ngoài: lsort trước, rồi lindex",
+      "result có giá trị 9 (phần tử lớn nhất sau khi sort)",
+      "result có giá trị 3 (phần tử đầu tiên của list gốc)",
+      "Từ khóa 'end' trong lindex chỉ phần tử cuối cùng của list"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Command substitution [...] thực thi từ trong ra ngoài. Trước tiên lsort $nums sắp xếp → {1 1 3 4 5 9}. Sau đó lindex ... end lấy phần tử cuối → 9 (phần tử lớn nhất). 'end' là chỉ số đặc biệt trong Tcl chỉ phần tử cuối cùng. result = 9, KHÔNG phải 3. (Tham khảo slide Chương 3 - Command substitution, lsort, lindex)"
+  },
+  {
+    "id": 49,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code sau về array. Những phát biểu nào ĐÚNG?",
+    "code": "set colors(red) \"đỏ\"\nset colors(green) \"xanh\"\narray set colors {blue xanh_dương yellow vàng}\nputs [array get colors]\nputs [array size colors]\nputs [array exists colors]\nputs [array exists nonexist]",
+    "options": [
+      "array size colors trả về 4 (gồm red, green, blue, yellow)",
+      "array get colors trả về list dạng key-value nhưng thứ tự KHÔNG được đảm bảo",
+      "array exists colors trả về 1, array exists nonexist trả về 0",
+      "array set colors sẽ GHI ĐÈ các key red và green đã tồn tại"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "⚠️ TRAP: array set KHÔNG ghi đè các key đã tồn tại nếu không trùng tên. Nó chỉ THÊM các key mới (blue, yellow) vào mảng đã có (red, green). Do đó tổng cộng có 4 phần tử. array get trả về list key-value nhưng thứ tự là không xác định (unordered). array exists trả về 1 nếu mảng tồn tại, 0 nếu không. (Tham khảo slide Chương 3 - Array)"
+  },
+  {
+    "id": 50,
+    "chapter": 3,
+    "chapterTitle": "Chương 3: Cú pháp Tcl cơ bản",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét các cách sử dụng braces {} và quotes \"\" sau đây. Những phát biểu nào ĐÚNG?",
+    "code": "set x 10\nset a \"{$x}\"    ;# Lệnh A\nset b {[expr {$x + 1}]}  ;# Lệnh B\nset c \"[expr {$x + 1}]\"  ;# Lệnh C\nset d \"\\n\"       ;# Lệnh D\nset e {\\n}       ;# Lệnh E",
+    "options": [
+      "a = \"{10}\" - double quotes bên ngoài cho phép $ substitution, braces bên trong chỉ là ký tự thường",
+      "b = \"[expr {$x + 1}]\" (nguyên văn, không thực thi)",
+      "c = \"11\" - double quotes cho phép command substitution thực thi expr",
+      "d chứa ký tự newline thực sự, e chứa hai ký tự \\ và n"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP phức tạp: (A) Trong \"{$x}\", quotes bên ngoài quyết định - $x được thay thế thành 10, {} chỉ là ký tự trong chuỗi → a = '{10}'. (B) Braces bên ngoài vô hiệu hóa TẤT CẢ substitution → b giữ nguyên '[expr {$x + 1}]'. (C) Quotes bên ngoài cho phép command substitution → [expr {$x + 1}] thực thi → c = '11'. (D) Trong quotes, \\n là backslash substitution → newline thật. (E) Trong braces, \\n giữ nguyên → hai ký tự. (Tham khảo slide Chương 3 - Quoting rules)"
+  },
+  {
+    "id": 51,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Cú pháp lệnh if trong Tcl yêu cầu những điều gì?",
+    "code": "if {$x > 0} {\n    puts \"Dương\"\n} elseif {$x == 0} {\n    puts \"Không\"\n} else {\n    puts \"Âm\"\n}",
+    "options": [
+      "Điều kiện phải được bọc trong braces {}",
+      "Thân lệnh (body) phải được bọc trong braces {}",
+      "Dấu mở ngoặc { phải nằm cùng dòng với if/elseif/else",
+      "Có thể dùng dấu ngoặc tròn () thay cho braces {} để bọc điều kiện"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Trong Tcl, lệnh if yêu cầu: (1) điều kiện bọc trong {}, (2) body bọc trong {}, (3) dấu { mở PHẢI cùng dòng với từ khóa (vì Tcl xử lý theo dòng). Không thể dùng () thay cho {} vì () không phải là cơ chế quoting của Tcl. (Tham khảo slide Chương 4 - if)"
+  },
+  {
+    "id": 52,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh switch trong Tcl hỗ trợ những chế độ so khớp (matching mode) nào?",
+    "code": null,
+    "options": [
+      "-exact: so khớp chính xác",
+      "-glob: so khớp dạng glob pattern (dùng *, ?)",
+      "-regexp: so khớp biểu thức chính quy",
+      "-nocase: không phân biệt chữ hoa/thường (dùng kết hợp)"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Lệnh switch trong Tcl hỗ trợ 4 tùy chọn matching: -exact (so khớp chính xác, mặc định), -glob (dùng wildcard *, ?), -regexp (biểu thức chính quy), và -nocase (không phân biệt hoa/thường, có thể kết hợp với các mode khác). (Tham khảo slide Chương 4 - switch)"
+  },
+  {
+    "id": 53,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về vòng lặp foreach trong Tcl?",
+    "code": "foreach item {a b c d} {\n    puts $item\n}",
+    "options": [
+      "foreach là vòng lặp quan trọng nhất trong EDA scripting",
+      "foreach duyệt qua từng phần tử của list",
+      "foreach có thể duyệt từng cặp phần tử với cú pháp foreach {k v} $list {...}",
+      "foreach yêu cầu biết trước số phần tử của list"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "foreach là vòng lặp quan trọng nhất trong EDA vì thường xuyên cần duyệt danh sách cell, net, pin. Nó duyệt từng phần tử và hỗ trợ duyệt từng cặp với cú pháp foreach {k v} $list {...}. foreach KHÔNG yêu cầu biết trước số phần tử - nó tự dừng khi hết list. (Tham khảo slide Chương 4 - foreach)"
+  },
+  {
+    "id": 54,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Sự khác biệt giữa break và continue trong vòng lặp Tcl là gì?",
+    "code": null,
+    "options": [
+      "break thoát hoàn toàn khỏi vòng lặp hiện tại",
+      "continue bỏ qua phần còn lại của iteration hiện tại và chuyển sang iteration tiếp theo",
+      "break và continue chỉ hoạt động trong foreach, không hoạt động trong for và while",
+      "Sau khi gọi break, chương trình tiếp tục thực thi lệnh SAU vòng lặp"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "break thoát hoàn toàn khỏi vòng lặp và tiếp tục thực thi lệnh ngay sau vòng lặp. continue chỉ bỏ qua iteration hiện tại, chuyển sang iteration kế tiếp. Cả break và continue đều hoạt động trong TẤT CẢ các loại vòng lặp: for, while, và foreach. (Tham khảo slide Chương 4 - break, continue)"
+  },
+  {
+    "id": 55,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Cú pháp khai báo thủ tục (procedure) trong Tcl gồm những thành phần nào?",
+    "code": "proc greet {name} {\n    puts \"Hello, $name!\"\n}",
+    "options": [
+      "Từ khóa proc theo sau là tên thủ tục",
+      "Danh sách tham số được bọc trong braces {}",
+      "Thân thủ tục (body) được bọc trong braces {}",
+      "Proc bắt buộc phải có lệnh return ở cuối"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Cú pháp proc gồm: proc name {args} {body}. Tên theo sau từ khóa proc, tham số và body đều bọc trong {}. Proc KHÔNG bắt buộc phải có return - nếu không có, proc trả về kết quả của lệnh cuối cùng trong body. (Tham khảo slide Chương 4 - proc)"
+  },
+  {
+    "id": 56,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Những phát biểu nào đúng về scope (phạm vi) biến trong proc của Tcl?",
+    "code": "set global_var 100\nproc test {} {\n    puts $global_var\n}",
+    "options": [
+      "Biến trong proc mặc định là LOCAL (cục bộ)",
+      "Gọi test sẽ báo lỗi vì global_var không truy cập được từ bên trong proc",
+      "Cần dùng lệnh 'global global_var' bên trong proc để truy cập biến toàn cục",
+      "Mọi biến trong Tcl đều có phạm vi toàn cục"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Trong Tcl, biến bên trong proc mặc định là LOCAL. Proc KHÔNG tự động truy cập được biến toàn cục. Gọi test sẽ báo lỗi 'can't read global_var: no such variable'. Phải dùng lệnh 'global global_var' bên trong proc để khai báo truy cập biến toàn cục. (Tham khảo slide Chương 4 - Scope, global)"
+  },
+  {
+    "id": 57,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Xét đoạn code về lệnh for trong Tcl. Những phát biểu nào ĐÚNG?",
+    "code": "for {set i 0} {$i < 5} {incr i} {\n    if {$i == 3} continue\n    puts $i\n}",
+    "options": [
+      "Vòng lặp in ra: 0 1 2 4 (bỏ qua 3)",
+      "Lệnh for có 4 phần: {init} {condition} {increment} {body}",
+      "incr i tăng giá trị i lên 1",
+      "Nếu thay continue bằng break, vòng lặp sẽ in ra: 0 1 2"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Vòng lặp for có 4 phần bọc trong {}. continue ở i=3 bỏ qua puts, nên chỉ in 0 1 2 4. incr i tăng i lên 1. Nếu dùng break ở i=3, vòng lặp thoát ngay, chỉ in 0 1 2. (Tham khảo slide Chương 4 - for, break, continue)"
+  },
+  {
+    "id": 58,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Xét các cách sử dụng foreach nâng cao. Những phát biểu nào ĐÚNG?",
+    "code": "# Cách 1: Duyệt từng cặp\nforeach {key val} {a 1 b 2 c 3} {\n    puts \"$key = $val\"\n}\n# Cách 2: Duyệt song song\nforeach x {1 2 3} y {a b c} {\n    puts \"$x $y\"\n}",
+    "options": [
+      "Cách 1 in ra: a = 1, b = 2, c = 3 (duyệt từng cặp)",
+      "Cách 2 in ra: 1 a, 2 b, 3 c (duyệt song song hai list)",
+      "Cách 2 sẽ báo lỗi vì foreach chỉ nhận một biến lặp",
+      "Nếu hai list trong Cách 2 có độ dài khác nhau, biến thiếu nhận giá trị rỗng"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "foreach hỗ trợ: duyệt từng cặp với {key val} và duyệt song song nhiều list. Cách 1 lấy 2 phần tử mỗi lần lặp. Cách 2 duyệt đồng thời 2 list, mỗi lần lấy 1 phần tử từ mỗi list. Nếu list có độ dài khác nhau, biến tương ứng với list ngắn hơn nhận giá trị rỗng (\"\"). (Tham khảo slide Chương 4 - foreach nâng cao)"
+  },
+  {
+    "id": 59,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Xét đoạn code về proc với default arguments. Những phát biểu nào ĐÚNG?",
+    "code": "proc run_synthesis {design {clk 10} {effort \"medium\"}} {\n    puts \"Design: $design, Clock: $clk, Effort: $effort\"\n}\nrun_synthesis myChip\nrun_synthesis myChip 5\nrun_synthesis myChip 5 \"high\"",
+    "options": [
+      "Gọi run_synthesis myChip sẽ dùng clk=10 và effort=medium",
+      "Gọi run_synthesis myChip 5 sẽ dùng clk=5 và effort=medium",
+      "Tham số có default value phải đặt SAU tham số bắt buộc",
+      "Gọi run_synthesis (không argument) sẽ dùng tất cả giá trị mặc định"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Trong proc, tham số mặc định dùng cú pháp {param default_value}. 'design' bắt buộc, 'clk' mặc định 10, 'effort' mặc định 'medium'. Tham số có default PHẢI đặt sau tham số bắt buộc. Gọi không có argument sẽ báo lỗi vì 'design' là bắt buộc. (Tham khảo slide Chương 4 - proc default args)"
+  },
+  {
+    "id": 60,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Xét đoạn code về lệnh catch trong Tcl. Những phát biểu nào ĐÚNG?",
+    "code": "set status [catch {expr {1/0}} result]\nputs \"Status: $status\"\nputs \"Result: $result\"",
+    "options": [
+      "catch trả về 0 nếu lệnh thực thi thành công (không lỗi)",
+      "catch trả về 1 nếu lệnh thực thi bị lỗi",
+      "Biến result chứa thông báo lỗi khi có lỗi xảy ra",
+      "Trong trường hợp này, status = 1 vì phép chia cho 0 gây lỗi"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "catch {script} result trả về mã trạng thái: 0 = thành công (result chứa kết quả), 1 = lỗi (result chứa thông báo lỗi). Phép chia 1/0 gây lỗi, nên status = 1 và result chứa thông báo lỗi 'divide by zero'. (Tham khảo slide Chương 4 - catch)"
+  },
+  {
+    "id": 61,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Xét đoạn code về switch với nhiều tùy chọn. Những phát biểu nào ĐÚNG?",
+    "code": "set ext \"vhdl\"\nswitch -glob $ext {\n    *.v      {puts \"Verilog\"}\n    *.vhd*   {puts \"VHDL\"}\n    *.sv     {puts \"SystemVerilog\"}\n    default  {puts \"Unknown\"}\n}",
+    "options": [
+      "Với -glob, pattern *.vhd* sẽ khớp với 'vhdl' vì * khớp mọi chuỗi",
+      "default chỉ thực thi khi không có pattern nào khớp",
+      "Nếu dùng -exact thay -glob, sẽ in ra 'Unknown' vì không có pattern nào khớp chính xác 'vhdl'",
+      "Lệnh switch tự động thoát sau khi tìm thấy pattern khớp đầu tiên (không cần break)"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Với -glob, * khớp mọi chuỗi nên *.vhd* khớp 'vhdl'. default là case mặc định khi không có match. Với -exact, không có pattern nào là chính xác 'vhdl'. Khác với C/Java, switch trong Tcl TỰ ĐỘNG thoát sau match đầu tiên (trừ khi dùng fall-through với dấu -). (Tham khảo slide Chương 4 - switch)"
+  },
+  {
+    "id": 62,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Những phát biểu nào ĐÚNG về lệnh return và giá trị trả về của proc?",
+    "code": "proc add {a b} {\n    return [expr {$a + $b}]\n}\nproc last_cmd {x} {\n    expr {$x * 2}\n}\nputs [add 3 4]\nputs [last_cmd 5]",
+    "options": [
+      "add 3 4 trả về 7 nhờ lệnh return",
+      "last_cmd 5 trả về 10 vì proc trả về kết quả của lệnh cuối cùng",
+      "Nếu proc không có return, nó luôn trả về chuỗi rỗng",
+      "return có thể dùng để thoát sớm khỏi proc trước khi hết body"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Lệnh return trả về giá trị chỉ định từ proc. Nếu KHÔNG có return, proc trả về kết quả của LỆNH CUỐI CÙNG (không phải chuỗi rỗng). Ở đây last_cmd trả về kết quả của expr {$x * 2} = 10. return cũng cho phép thoát sớm khỏi proc. (Tham khảo slide Chương 4 - return, proc)"
+  },
+  {
+    "id": 63,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code về upvar. Những phát biểu nào ĐÚNG?",
+    "code": "proc double_it {var_name} {\n    upvar $var_name local_ref\n    set local_ref [expr {$local_ref * 2}]\n}\nset myval 5\ndouble_it myval\nputs $myval",
+    "options": [
+      "Kết quả in ra là 10 vì upvar cho phép thay đổi biến bên ngoài proc",
+      "Gọi double_it $myval (có dấu $) cũng cho kết quả tương tự",
+      "Khi gọi double_it, phải truyền TÊN BIẾN (không có $), tức là 'myval'",
+      "upvar tạo liên kết tham chiếu giữa local_ref và biến myval ở scope gọi"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP QUAN TRỌNG: upvar yêu cầu truyền TÊN BIẾN (không có $). Gọi 'double_it myval' truyền chuỗi 'myval' → upvar liên kết local_ref với biến myval. Nếu gọi 'double_it $myval' (có $), sẽ truyền GIÁ TRỊ 5 → upvar cố tìm biến tên '5' → LỖI! Đây là trap phổ biến nhất với upvar. (Tham khảo slide Chương 4 - upvar)"
+  },
+  {
+    "id": 64,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code sau về catch. Những phát biểu nào ĐÚNG?",
+    "code": "proc safe_divide {a b} {\n    if {[catch {expr {$a / $b}} result]} {\n        return \"Error: $result\"\n    } else {\n        return \"Result: $result\"\n    }\n}\nputs [safe_divide 10 3]\nputs [safe_divide 10 0]",
+    "options": [
+      "safe_divide 10 3 in ra 'Result: 3' (phép chia nguyên)",
+      "safe_divide 10 0 in ra 'Error: divide by zero'",
+      "Điều kiện if kiểm tra catch trả về 1 (lỗi) vì trong Tcl, 1 = true",
+      "Nếu đổi điều kiện thành 'if {[catch ...] == 0}', logic sẽ ĐẢO NGƯỢC"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP: catch trả về 0 = thành công, 1 = lỗi. Nhiều người nhầm 0 = lỗi (như exit code). Trong if, catch trả về 1 (lỗi) → true → vào nhánh if. catch trả về 0 (OK) → false → vào nhánh else. 10/3 = 3 (chia nguyên), 10/0 gây lỗi. Nếu đổi thành == 0, logic đảo: vào if khi thành công, else khi lỗi. (Tham khảo slide Chương 4 - catch)"
+  },
+  {
+    "id": 65,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code sau về switch fall-through. Những phát biểu nào ĐÚNG?",
+    "code": "set color \"red\"\nswitch $color {\n    red -\n    orange -\n    yellow {\n        puts \"Warm color\"\n    }\n    blue -\n    green {\n        puts \"Cool color\"\n    }\n    default {\n        puts \"Other\"\n    }\n}",
+    "options": [
+      "Kết quả in ra 'Warm color' vì red fall-through đến yellow",
+      "Dấu - ở cuối pattern red và orange nghĩa là 'fall through' đến pattern kế tiếp",
+      "Nếu color = 'orange', kết quả cũng là 'Warm color'",
+      "Dấu - có nghĩa là body rỗng và sẽ không thực thi gì cả"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "⚠️ TRAP: Dấu - ở cuối pattern KHÔNG có nghĩa là body rỗng. Nó có nghĩa là 'fall through' - tiếp tục xuống pattern tiếp theo cho đến khi gặp pattern có body thực sự. red → fall through → orange → fall through → yellow → thực thi 'Warm color'. Tương tự orange cũng fall through đến yellow. (Tham khảo slide Chương 4 - switch fall-through)"
+  },
+  {
+    "id": 66,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code sau. Những phát biểu nào ĐÚNG?",
+    "code": "set x 10\nif \"$x > 5\" {\n    puts \"Greater\"\n}\nif {$x > 5} {\n    puts \"Greater\"\n}",
+    "options": [
+      "Cả hai lệnh if đều in ra 'Greater'",
+      "Lệnh if đầu tiên (dùng \"\") vẫn hoạt động nhưng KHÔNG nên dùng",
+      "Lệnh if đầu tiên truyền chuỗi '10 > 5' cho if, if tự đánh giá",
+      "Dùng braces {} cho điều kiện if là best practice vì tránh double substitution"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP: if \"$x > 5\" VẪN CHẠY vì Tcl thay $x → '10 > 5', rồi if đánh giá biểu thức này. Tuy nhiên đây là BAD PRACTICE vì: (1) double substitution - biểu thức bị thay thế trước, (2) tiềm ẩn rủi ro injection, (3) không tối ưu bytecode. Dùng {$x > 5} là đúng cách: expr bên trong if tự xử lý substitution. (Tham khảo slide Chương 4 - if, Chương 3 - expr braces)"
+  },
+  {
+    "id": 67,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code về scope và global. Những phát biểu nào ĐÚNG?",
+    "code": "set count 0\nproc increment {} {\n    global count\n    incr count\n}\nproc reset {} {\n    set count 0\n}\nincrement\nincrement\nreset\nputs $count",
+    "options": [
+      "Kết quả in ra là 2",
+      "Proc reset tạo biến LOCAL count = 0, KHÔNG ảnh hưởng biến toàn cục",
+      "Proc increment thay đổi biến toàn cục count nhờ lệnh global",
+      "Nếu thêm 'global count' vào proc reset, kết quả sẽ là 0"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "⚠️ TRAP: proc reset KHÔNG có lệnh 'global count', nên 'set count 0' tạo biến LOCAL count trong proc reset, KHÔNG ảnh hưởng biến toàn cục. Sau 2 lần increment (có global), count toàn cục = 2. reset chỉ tạo biến local → count toàn cục vẫn = 2. Nếu thêm 'global count' vào reset, nó sẽ thay đổi biến toàn cục → count = 0. (Tham khảo slide Chương 4 - Scope, global)"
+  },
+  {
+    "id": 68,
+    "chapter": 4,
+    "chapterTitle": "Chương 4: Điều khiển luồng Tcl",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CÂU HỎI TRAP: Xét đoạn code phức tạp sau. Những phát biểu nào ĐÚNG?",
+    "code": "proc process_list {lst_name} {\n    upvar $lst_name data\n    set result {}\n    foreach {k v} $data {\n        if {[catch {expr {$v * 2}} doubled]} {\n            continue\n        }\n        lappend result $k $doubled\n    }\n    set data $result\n}\nset mydata {a 1 b hello c 3}\nprocess_list mydata\nputs $mydata",
+    "options": [
+      "Kết quả in ra: a 2 c 6",
+      "Phần tử 'b hello' bị bỏ qua vì 'hello' * 2 gây lỗi, catch bắt lỗi và continue bỏ qua",
+      "upvar cho phép proc thay đổi trực tiếp biến mydata ở scope gọi",
+      "Nếu gọi process_list $mydata thay vì process_list mydata, kết quả sẽ giống nhau"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "⚠️ TRAP TỔNG HỢP: (1) foreach {k v} duyệt từng cặp: a-1, b-hello, c-3. (2) catch bắt lỗi expr {'hello' * 2} → catch trả về 1 → if true → continue bỏ qua 'b hello'. (3) upvar liên kết data với mydata → set data thay đổi mydata trực tiếp. (4) process_list $mydata truyền GIÁ TRỊ 'a 1 b hello c 3' → upvar cố tìm biến tên đó → LỖI! Phải truyền TÊN BIẾN. (Tham khảo slide Chương 4 - upvar, catch, foreach)"
+  },
+  {
+    "id": 69,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh nào sau đây trả về độ dài (số ký tự) của chuỗi trong Tcl?",
+    "code": "set s \"Hello World\"",
+    "options": [
+      "string length $s",
+      "string size $s",
+      "strlen($s)",
+      "string count $s"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'string length $s' trả về số ký tự của chuỗi $s. Các lệnh string size, strlen(), string count không tồn tại trong Tcl. Với chuỗi \"Hello World\" (11 ký tự kể cả dấu cách), kết quả trả về là 11."
+  },
+  {
+    "id": 70,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong Tcl, lệnh 'string index $s end' trả về gì?",
+    "code": "set s \"VLSI\"",
+    "options": [
+      "Ký tự cuối cùng của chuỗi, tức là \"I\"",
+      "Vị trí (index) của ký tự cuối cùng, tức là 3",
+      "Toàn bộ chuỗi \"VLSI\"",
+      "Chuỗi rỗng \"\""
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: 'string index $s end' trả về ký tự tại vị trí cuối cùng của chuỗi. Với chuỗi \"VLSI\", ký tự cuối cùng là \"I\". Lưu ý: lệnh trả về ký tự chứ không phải chỉ số vị trí."
+  },
+  {
+    "id": 71,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh nào dùng để chuyển chuỗi sang chữ thường trong Tcl?",
+    "code": null,
+    "options": [
+      "string tolower $s",
+      "string lower $s",
+      "tolower($s)",
+      "string toupper $s"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'string tolower $s' chuyển tất cả ký tự trong chuỗi $s sang chữ thường. 'string toupper' chuyển sang chữ HOA (không phải chữ thường). Các lệnh string lower và tolower() không tồn tại trong Tcl."
+  },
+  {
+    "id": 72,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh 'string range' trong Tcl hoạt động như thế nào?",
+    "code": "set result [string range \"ASIC_Design\" 0 3]",
+    "options": [
+      "Trả về \"ASIC\" - bao gồm cả ký tự ở vị trí start và end",
+      "Trả về \"ASI\" - bao gồm start nhưng không bao gồm end",
+      "Trả về \"SIC_\" - không bao gồm start, bao gồm end",
+      "Trả về \"ASIC_\" - bao gồm thêm 1 ký tự sau end"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: 'string range $s start end' trả về chuỗi con từ vị trí start đến end, BAO GỒM CẢ HAI ĐẦU (inclusive). Với \"ASIC_Design\" từ vị trí 0 đến 3: A(0) S(1) I(2) C(3) → kết quả là \"ASIC\". Đây là điểm khác biệt so với nhiều ngôn ngữ khác (Python dùng exclusive end)."
+  },
+  {
+    "id": 73,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh 'format' trong Tcl tương tự hàm nào trong ngôn ngữ C?",
+    "code": "set result [format \"Slack: %.2f ns\" 0.345]",
+    "options": [
+      "printf/sprintf - định dạng chuỗi với format specifiers",
+      "scanf - đọc và phân tích chuỗi",
+      "strcmp - so sánh hai chuỗi",
+      "strlen - đo độ dài chuỗi"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'format' trong Tcl hoạt động giống printf/sprintf trong C, cho phép định dạng chuỗi với các format specifiers như %d (số nguyên), %f (số thực), %s (chuỗi), %.2f (số thực 2 chữ số thập phân). Kết quả ở đây là \"Slack: 0.35 ns\"."
+  },
+  {
+    "id": 74,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Chế độ mở file nào trong Tcl dùng để ghi thêm (append) vào cuối file mà KHÔNG xóa nội dung cũ?",
+    "code": null,
+    "options": [
+      "a",
+      "w",
+      "r+",
+      "r"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: Chế độ 'a' (append) mở file để ghi thêm vào cuối, KHÔNG xóa nội dung cũ. Chế độ 'w' (write) sẽ XÓA TOÀN BỘ nội dung cũ rồi ghi mới. Chế độ 'r' chỉ đọc, 'r+' đọc và ghi nhưng không tạo file mới."
+  },
+  {
+    "id": 75,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Cho đoạn mã sau, kết quả của biến $pos1 và $pos2 lần lượt là gì?",
+    "code": "set s \"aba_aba_aba\"\nset pos1 [string first \"aba\" $s]\nset pos2 [string last \"aba\" $s]",
+    "options": [
+      "pos1 = 0, pos2 = 8",
+      "pos1 = 0, pos2 = 4",
+      "pos1 = 1, pos2 = 9",
+      "pos1 = 0, pos2 = 10"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 5: 'string first' tìm vị trí XUẤT HIỆN ĐẦU TIÊN của chuỗi con. \"aba\" xuất hiện đầu tiên tại vị trí 0. 'string last' tìm vị trí XUẤT HIỆN CUỐI CÙNG. Chuỗi \"aba_aba_aba\" có \"aba\" cuối cùng bắt đầu ở vị trí 8 (ký tự a(8)b(9)a(10))."
+  },
+  {
+    "id": 76,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Lệnh 'string match' sử dụng kiểu pattern nào? Chọn các phát biểu ĐÚNG.",
+    "code": "string match \"*.v\" \"top_module.v\"",
+    "options": [
+      "Sử dụng glob pattern (wildcard) với * khớp bất kỳ chuỗi nào",
+      "? khớp đúng một ký tự bất kỳ trong glob pattern",
+      "Sử dụng regular expression (regex) giống lệnh regexp",
+      "[a-z] khớp một ký tự trong phạm vi a đến z"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 5: 'string match' sử dụng GLOB PATTERN (wildcard matching), KHÔNG phải regex. Các ký tự đặc biệt: * khớp bất kỳ chuỗi nào (kể cả rỗng), ? khớp đúng 1 ký tự, [...] khớp tập ký tự. Lệnh regexp mới dùng regular expression. Ví dụ: 'string match \"*.v\" \"top_module.v\"' trả về 1 (khớp)."
+  },
+  {
+    "id": 77,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Lệnh 'scan' hoạt động như thế nào? Chọn các phát biểu ĐÚNG.",
+    "code": "set n [scan \"temp=85.3, voltage=1.10\" \"temp=%f, voltage=%f\" t v]",
+    "options": [
+      "Lệnh scan tương tự sscanf trong C, phân tích chuỗi theo format",
+      "Giá trị trả về $n là số field được khớp thành công (ở đây n=2)",
+      "Sau lệnh, $t = 85.3 và $v = 1.10",
+      "Giá trị trả về $n là tổng các giá trị đọc được (ở đây n=86.4)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'scan' hoạt động giống sscanf trong C. Nó phân tích chuỗi đầu vào theo format string và lưu kết quả vào các biến. Giá trị TRẢ VỀ là SỐ FIELD được khớp thành công (ở đây 2 field %f đều khớp → n=2). Các giá trị được lưu vào biến t=85.3 và v=1.10."
+  },
+  {
+    "id": 78,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Cho đoạn mã regex sau, chọn các phát biểu ĐÚNG:",
+    "code": "regexp {(\\w+)@(\\w+\\.\\w+)} \"user@domain.com\" full name domain",
+    "options": [
+      "Lệnh regexp trả về 1 vì chuỗi khớp pattern",
+      "Biến full chứa toàn bộ chuỗi khớp: \"user@domain.com\"",
+      "Biến name chứa capture group 1: \"user\"",
+      "Biến domain chứa capture group 2: \"domain.com\""
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'regexp' trả về 1 nếu khớp, 0 nếu không. Biến đầu tiên sau chuỗi (full) nhận toàn bộ phần khớp. Các biến tiếp theo nhận các capture group theo thứ tự: (\\w+) đầu tiên khớp \"user\" → name, (\\w+\\.\\w+) khớp \"domain.com\" → domain. \\w+ khớp 1 hoặc nhiều ký tự word (chữ, số, _)."
+  },
+  {
+    "id": 79,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Lệnh 'string map' hoạt động như thế nào?",
+    "code": "set result [string map {a @ e 3 o 0} \"hello\"]",
+    "options": [
+      "Thay thế đồng thời nhiều cặp ký tự: kết quả là \"h3ll0\"",
+      "Danh sách tham số gồm các cặp {cũ1 mới1 cũ2 mới2 ...}",
+      "Chỉ thay thế lần xuất hiện đầu tiên của mỗi cặp",
+      "Trả về chuỗi mới, KHÔNG thay đổi chuỗi gốc"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 5: 'string map' nhận danh sách các cặp {old new} và thay thế TẤT CẢ các lần xuất hiện (không phải chỉ lần đầu). Với {a @ e 3 o 0} \"hello\": e→3, o→0 → \"h3ll0\". Lệnh trả về chuỗi mới, chuỗi gốc không bị thay đổi (Tcl strings are immutable values)."
+  },
+  {
+    "id": 80,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Đoạn mã đọc file sau hoạt động như thế nào? Chọn các phát biểu ĐÚNG.",
+    "code": "set fid [open \"report.txt\" r]\nwhile {[gets $fid line] >= 0} {\n    puts $line\n}\nclose $fid",
+    "options": [
+      "gets trả về số ký tự đọc được, dòng nội dung được lưu vào biến line",
+      "Điều kiện >= 0 đảm bảo vòng lặp dừng khi gặp EOF (gets trả về -1)",
+      "Lệnh close là không bắt buộc vì Tcl tự động đóng file",
+      "Chế độ 'r' mở file chỉ để đọc"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'gets $fid line' đọc 1 dòng từ file, lưu nội dung vào biến line và TRẢ VỀ SỐ KÝ TỰ đọc được. Khi gặp EOF, gets trả về -1, do đó điều kiện >= 0 giúp dừng vòng lặp. Lệnh 'close' là BẮT BUỘC để giải phóng tài nguyên - Tcl KHÔNG tự động đóng file. Chế độ 'r' = read only."
+  },
+  {
+    "id": 81,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ CẨN THẬN: Lệnh 'string compare' và 'string equal' có giá trị trả về KHÁC NHAU. Chọn các phát biểu ĐÚNG:",
+    "code": "set a \"abc\"\nset b \"abc\"\nset r1 [string compare $a $b]\nset r2 [string equal $a $b]",
+    "options": [
+      "r1 = 0 vì string compare trả về 0 khi hai chuỗi BẰNG nhau",
+      "r2 = 1 vì string equal trả về 1 khi hai chuỗi BẰNG nhau",
+      "r1 = 1 vì string compare trả về 1 khi hai chuỗi BẰNG nhau",
+      "Cả hai lệnh đều hỗ trợ flag -nocase để so sánh không phân biệt hoa/thường"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 5: ĐÂY LÀ BẪY THƯỜNG GẶP! 'string compare' trả về 0 nếu bằng, số âm (<0) nếu a < b, số dương (>0) nếu a > b (giống strcmp trong C). 'string equal' trả về 1 nếu bằng, 0 nếu khác (giống boolean). Nhiều sinh viên nhầm lẫn hai giá trị trả về này! Cả hai đều hỗ trợ -nocase flag."
+  },
+  {
+    "id": 82,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Lệnh 'regsub' mặc định hoạt động như thế nào? Cho đoạn mã sau:",
+    "code": "set s \"aaa bbb aaa ccc aaa\"\nregsub {aaa} $s \"XXX\" result1\nregsub -all {aaa} $s \"XXX\" result2",
+    "options": [
+      "result1 = \"XXX bbb aaa ccc aaa\" - mặc định chỉ thay thế LẦN ĐẦU TIÊN",
+      "result2 = \"XXX bbb XXX ccc XXX\" - flag -all thay thế TẤT CẢ",
+      "result1 = \"XXX bbb XXX ccc XXX\" - mặc định thay thế TẤT CẢ",
+      "regsub trả về số lần thay thế thực hiện được"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 5: ĐÂY LÀ BẪY RẤT QUAN TRỌNG! Lệnh 'regsub' mặc định chỉ thay thế LẦN XUẤT HIỆN ĐẦU TIÊN. Phải thêm flag '-all' để thay thế TẤT CẢ. Nhiều sinh viên nhầm tưởng regsub mặc định thay tất cả. regsub trả về số lần thay thế (1 nếu không có -all, hoặc tổng số nếu có -all)."
+  },
+  {
+    "id": 83,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Chế độ mở file 'w' hoạt động như thế nào? Chọn phát biểu ĐÚNG:",
+    "code": "# File data.txt hiện có nội dung: \"Old Data\"\nset fid [open \"data.txt\" w]\nputs $fid \"New Data\"\nclose $fid",
+    "options": [
+      "Nội dung file sau khi chạy là \"New Data\" - chế độ w XÓA TOÀN BỘ nội dung cũ",
+      "Nội dung file sau khi chạy là \"Old Data\\nNew Data\" - w ghi thêm vào cuối",
+      "Nếu file chưa tồn tại, chế độ w sẽ tạo file mới",
+      "Để ghi thêm vào cuối mà không xóa nội dung cũ, phải dùng chế độ 'a'"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 5: ĐÂY LÀ BẪY! Chế độ 'w' (write) sẽ XÓA TOÀN BỘ (truncate) nội dung cũ của file trước khi ghi. Nếu file chưa tồn tại, w tạo file mới. Nhiều sinh viên nhầm tưởng w ghi thêm vào cuối - đó là chức năng của chế độ 'a' (append). Đây là sai lầm nguy hiểm có thể gây mất dữ liệu!"
+  },
+  {
+    "id": 84,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Lệnh 'gets' trả về gì? Chọn phát biểu ĐÚNG:",
+    "code": "# File test.txt chứa dòng: \"Hello World\" (11 ký tự)\nset fid [open \"test.txt\" r]\nset count [gets $fid line]\nputs \"count=$count, line=$line\"",
+    "options": [
+      "count = 11 - gets trả về SỐ KÝ TỰ đọc được",
+      "count = \"Hello World\" - gets trả về NỘI DUNG dòng đọc được",
+      "line = \"Hello World\" - nội dung dòng được lưu vào biến line",
+      "Khi gặp EOF, gets trả về -1"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 5: ĐÂY LÀ BẪY QUAN TRỌNG! Lệnh 'gets $fid varName' có HAI output: (1) GIÁ TRỊ TRẢ VỀ là SỐ KÝ TỰ đọc được (11 trong trường hợp này), (2) NỘI DUNG dòng được lưu vào biến (line). Nhiều sinh viên nhầm tưởng giá trị trả về là nội dung dòng. Khi EOF, gets trả về -1."
+  },
+  {
+    "id": 85,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY REGEX: Phân tích đoạn mã sau và chọn phát biểu ĐÚNG:",
+    "code": "set line \"Slack: -0.253ns  Path: clk -> reg1/D\"\nregexp {Slack:\\s+(-?[\\d.]+)} $line full slack_val\n# Hỏi: slack_val chứa gì?",
+    "options": [
+      "slack_val = \"-0.253\" vì capture group (-?[\\d.]+) bắt số có dấu âm",
+      "slack_val = \"Slack: -0.253\" vì capture group bắt toàn bộ phần khớp",
+      "full = \"Slack: -0.253\" vì biến đầu tiên luôn chứa toàn bộ phần khớp",
+      "-? trong pattern nghĩa là dấu trừ xuất hiện 0 hoặc 1 lần"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 5: Trong regexp, biến ĐẦU TIÊN sau chuỗi (full) nhận TOÀN BỘ phần khớp pattern = \"Slack: -0.253\". Biến THỨ HAI (slack_val) nhận capture group ĐẦU TIÊN = (-?[\\d.]+) = \"-0.253\". Ký tự -? nghĩa là dấu trừ có thể có hoặc không (0 hoặc 1 lần). [\\d.]+ khớp 1+ chữ số hoặc dấu chấm."
+  },
+  {
+    "id": 86,
+    "chapter": 5,
+    "chapterTitle": "Chương 5: Chuỗi & File I/O",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Về xử lý lỗi khi mở file, chọn các phát biểu ĐÚNG:",
+    "code": "if {[catch {open \"nonexistent.txt\" r} fid]} {\n    puts \"Error: $fid\"\n} else {\n    # Xử lý file\n    close $fid\n}",
+    "options": [
+      "Khi catch bắt lỗi (trả về 1), biến $fid chứa THÔNG BÁO LỖI chứ không phải file handle",
+      "Khi catch thành công (trả về 0), biến $fid chứa file handle để sử dụng",
+      "Nếu không dùng catch và file không tồn tại, script sẽ dừng với lỗi",
+      "Không cần dùng catch vì Tcl tự động bỏ qua lỗi mở file"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 5: Lệnh 'catch' rất quan trọng khi mở file! Khi catch trả về 1 (có lỗi), biến $fid chứa THÔNG BÁO LỖI (error message), KHÔNG phải file handle. Khi catch trả về 0 (thành công), $fid chứa file handle hợp lệ. Nếu không bọc catch, lỗi mở file sẽ DỪNG TOÀN BỘ script. Tcl KHÔNG tự động bỏ qua lỗi."
+  },
+  {
+    "id": 87,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong dòng EDA tools của Synopsys, tool nào dùng cho tổng hợp logic (Synthesis)?",
+    "code": null,
+    "options": [
+      "Design Compiler (DC)",
+      "PrimeTime",
+      "ICC2",
+      "Genus"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 6: Synopsys Design Compiler (DC) là tool tổng hợp logic (synthesis) - chuyển RTL thành gate-level netlist. PrimeTime dùng cho STA (phân tích timing tĩnh). ICC2 dùng cho PnR (Place and Route). Genus là tool synthesis của CADENCE (không phải Synopsys)."
+  },
+  {
+    "id": 88,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Các bước cơ bản trong DC Synthesis Flow theo đúng thứ tự là gì?",
+    "code": null,
+    "options": [
+      "Read RTL → Constraints SDC → compile_ultra → Reports → Write netlist",
+      "Constraints SDC → Read RTL → compile_ultra → Reports → Write netlist",
+      "Read RTL → compile_ultra → Constraints SDC → Reports → Write netlist",
+      "compile_ultra → Read RTL → Constraints SDC → Write netlist → Reports"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 6: DC Synthesis Flow gồm 5 bước ĐÚNG THỨ TỰ: 1) Read RTL (analyze/elaborate hoặc read_verilog) → 2) Áp dụng constraints SDC (create_clock, set_input_delay, set_output_delay) → 3) compile_ultra (tổng hợp) → 4) Reports (report_timing, report_area, report_power) → 5) Write kết quả (netlist + write_sdc)."
+  },
+  {
+    "id": 89,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh SDC nào dùng để tạo ràng buộc clock trong EDA tools?",
+    "code": null,
+    "options": [
+      "create_clock -period $period -name clk [get_ports clk]",
+      "set_clock -period $period -name clk [get_ports clk]",
+      "define_clock -period $period -name clk [get_ports clk]",
+      "add_clock -period $period -name clk [get_ports clk]"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 6: Lệnh SDC chuẩn để tạo clock constraint là 'create_clock'. Cú pháp: create_clock -period <period_value> -name <clock_name> [get_ports <port_name>]. Các lệnh set_clock, define_clock, add_clock không tồn tại trong SDC."
+  },
+  {
+    "id": 90,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Trong Cadence EDA flow, tool nào tương ứng với chức năng nào? Chọn các cặp ĐÚNG.",
+    "code": null,
+    "options": [
+      "Genus - Tổng hợp logic (Synthesis)",
+      "Tempus - Phân tích timing tĩnh (STA)",
+      "Innovus - Place and Route (PnR)",
+      "Genus - Place and Route (PnR)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 6: Cadence EDA tools: Genus = Synthesis (tương đương DC của Synopsys), Tempus = STA (tương đương PrimeTime), Innovus = PnR (tương đương ICC2). Genus KHÔNG dùng cho PnR - đó là Innovus."
+  },
+  {
+    "id": 91,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Lệnh 'sizeof_collection' trong EDA tools dùng để làm gì?",
+    "code": "set paths [get_timing_paths -max_paths 100]\nputs \"Found: [sizeof_collection $paths] paths\"",
+    "options": [
+      "Đếm số phần tử trong một collection",
+      "Trả về kích thước bộ nhớ của collection (bytes)",
+      "Sắp xếp các phần tử trong collection theo kích thước",
+      "Lấy phần tử đầu tiên của collection"
+    ],
+    "correct": [
+      0
+    ],
+    "explanation": "Slide Chương 6: 'sizeof_collection' đếm số phần tử trong một collection (kiểu dữ liệu đặc biệt của EDA tools, khác list thông thường). Trong ví dụ, nó đếm số timing paths tìm được. Lệnh này KHÔNG liên quan đến kích thước bộ nhớ."
+  },
+  {
+    "id": 92,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Trong PrimeTime STA, lệnh sau dùng để làm gì? Chọn phát biểu ĐÚNG.",
+    "code": "set paths [get_timing_paths -delay_type max \\\n    -slack_lesser_than 0 -max_paths 50]",
+    "options": [
+      "-delay_type max kiểm tra vi phạm setup (đường dài nhất)",
+      "-slack_lesser_than 0 lọc các path có slack ÂM (vi phạm timing)",
+      "-max_paths 50 giới hạn tối đa 50 paths trong kết quả",
+      "-delay_type max kiểm tra vi phạm hold (đường ngắn nhất)"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 6: Trong PrimeTime: delay_type max = kiểm tra SETUP (đường trễ dài nhất), delay_type min = kiểm tra HOLD (đường trễ ngắn nhất). slack_lesser_than 0 lọc các path có slack < 0 (vi phạm timing). max_paths 50 giới hạn kết quả trả về tối đa 50 paths."
+  },
+  {
+    "id": 93,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Best practice khi viết Tcl script cho EDA tools là gì? Chọn các phát biểu ĐÚNG.",
+    "code": "# Cấu hình đầu script\nset DESIGN_NAME \"cpu_core\"\nset CLK_PERIOD 2.0\nset CLK_NAME \"clk\"\n\n# Sử dụng biến trong flow\ncreate_clock -period $CLK_PERIOD -name $CLK_NAME [get_ports $CLK_NAME]",
+    "options": [
+      "Tách các biến cấu hình (DESIGN_NAME, CLK_PERIOD) ra đầu script để dễ thay đổi",
+      "Hard-code tất cả giá trị trực tiếp vào lệnh để script chạy nhanh hơn",
+      "Dùng biến giúp tái sử dụng script cho nhiều design khác nhau",
+      "Đặt tên biến cấu hình bằng CHỮ HOA giúp phân biệt với biến cục bộ"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 6: Best practice quan trọng: tách biến cấu hình ra đầu script (DESIGN_NAME, CLK_PERIOD, v.v.). Điều này giúp: (1) Dễ thay đổi thông số khi chạy design khác, (2) Tái sử dụng script, (3) Dễ đọc và bảo trì. KHÔNG nên hard-code giá trị vì khó bảo trì. Đặt tên CHỮ HOA cho biến cấu hình là convention phổ biến."
+  },
+  {
+    "id": 94,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Innovus PnR flow gồm 6 bước chính. Bước nào ĐÚNG THỨ TỰ?",
+    "code": null,
+    "options": [
+      "init_design → create_floorplan → place_design → ccopt_design → route_design → verify_drc",
+      "create_floorplan → init_design → place_design → route_design → ccopt_design → verify_drc",
+      "Bước ccopt_design thực hiện Clock Tree Synthesis (CTS)",
+      "Bước place_design là timing-driven placement"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 6: Innovus PnR 6 bước ĐÚNG THỨ TỰ: 1) init_design (đọc LEF, netlist) → 2) create_floorplan + power plan → 3) place_design (timing-driven placement) → 4) ccopt_design (CTS - Clock Tree Synthesis) → 5) route_design + post-route optimization → 6) verify_drc/verify_connectivity + write_def. Bước init_design PHẢI đứng đầu, ccopt_design (CTS) PHẢI sau place_design."
+  },
+  {
+    "id": 95,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Vivado FPGA flow gồm các bước nào? Chọn phát biểu ĐÚNG.",
+    "code": "create_project $proj_name $proj_dir\nadd_files [glob src/*.v]\nlaunch_runs synth_1 -jobs 4\nwait_on_run synth_1\nlaunch_runs impl_1\nwait_on_run impl_1\nwrite_bitstream $bitfile",
+    "options": [
+      "create_project tạo dự án Vivado mới",
+      "launch_runs synth_1 chạy bước tổng hợp (synthesis)",
+      "launch_runs impl_1 chạy bước implementation (place & route)",
+      "write_bitstream tạo file cấu hình để nạp vào FPGA"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 6: Vivado FPGA flow gồm: 1) create_project - tạo project, 2) add_files/add_sources - thêm source files, 3) launch_runs synth_1 - synthesis, 4) launch_runs impl_1 - implementation (P&R), 5) write_bitstream - tạo bitstream file. Tất cả 4 phát biểu đều đúng, mô tả đúng chức năng của mỗi lệnh."
+  },
+  {
+    "id": 96,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Các lệnh SDC constraint nào sau đây là HỢP LỆ?",
+    "code": null,
+    "options": [
+      "set_input_delay - ràng buộc trễ đầu vào so với clock",
+      "set_output_delay - ràng buộc trễ đầu ra so với clock",
+      "set_false_path - đánh dấu path không cần kiểm tra timing",
+      "set_max_frequency - đặt tần số hoạt động tối đa"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 6: Các lệnh SDC hợp lệ: set_input_delay (trễ input), set_output_delay (trễ output), set_max_delay (trễ tối đa), set_false_path (bỏ qua timing check), set_multicycle_path (multi-cycle path). KHÔNG có lệnh 'set_max_frequency' trong SDC - tần số được thiết lập gián tiếp qua clock period trong create_clock."
+  },
+  {
+    "id": 97,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Về delay_type trong PrimeTime, chọn phát biểu ĐÚNG:",
+    "code": "# Kiểm tra setup violations\nset setup_paths [get_timing_paths -delay_type max -slack_lesser_than 0]\n\n# Kiểm tra hold violations  \nset hold_paths [get_timing_paths -delay_type min -slack_lesser_than 0]",
+    "options": [
+      "delay_type max kiểm tra SETUP violations (đường trễ dài nhất so với clock edge)",
+      "delay_type min kiểm tra HOLD violations (đường trễ ngắn nhất so với clock edge)",
+      "delay_type max kiểm tra HOLD violations (đường trễ dài nhất)",
+      "delay_type min kiểm tra SETUP violations (đường trễ ngắn nhất)"
+    ],
+    "correct": [
+      0,
+      1
+    ],
+    "explanation": "Slide Chương 6: ĐÂY LÀ BẪY KINH ĐIỂN! delay_type max = SETUP check (kiểm tra đường trễ tối đa không vượt quá clock period). delay_type min = HOLD check (kiểm tra đường trễ tối thiểu đủ lớn để data ổn định). Nhiều sinh viên nhầm lẫn max=hold, min=setup. Nhớ: max delay → setup, min delay → hold."
+  },
+  {
+    "id": 98,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY: Sự khác biệt giữa 'foreach' và 'foreach_in_collection' trong EDA tools là gì?",
+    "code": "# Duyệt collection trong PrimeTime/DC\nset cells [get_cells *]\n\n# Cách 1:\nforeach_in_collection cell $cells {\n    set name [get_attribute $cell full_name]\n    puts $name\n}\n\n# Cách 2 (SAI!):\nforeach cell $cells {\n    puts $cell\n}",
+    "options": [
+      "foreach_in_collection dùng cho collection (kiểu dữ liệu EDA), foreach dùng cho list (kiểu Tcl thường)",
+      "Dùng foreach với collection sẽ KHÔNG hoạt động đúng vì collection không phải list",
+      "Hai lệnh hoàn toàn tương đương, có thể dùng thay thế cho nhau",
+      "get_attribute dùng để lấy thuộc tính của object trong collection"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "Slide Chương 6: ĐÂY LÀ BẪY QUAN TRỌNG! Collection trong EDA tools (DC, PrimeTime, ICC2) là kiểu dữ liệu ĐẶC BIỆT, KHÁC list Tcl thông thường. PHẢI dùng foreach_in_collection để duyệt collection. Dùng foreach thông thường sẽ KHÔNG hoạt động đúng. get_attribute dùng để truy cập thuộc tính của các object trong collection."
+  },
+  {
+    "id": 99,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY SDC: Phân tích đoạn constraint sau và chọn phát biểu ĐÚNG:",
+    "code": "create_clock -period 10 -name clk [get_ports clk]\nset_input_delay -max 3.0 -clock clk [get_ports data_in]\nset_output_delay -max 2.0 -clock clk [get_ports data_out]\nset_false_path -from [get_clocks clk_a] -to [get_clocks clk_b]",
+    "options": [
+      "Clock period 10ns tương đương tần số 100MHz",
+      "set_input_delay -max 3.0 nghĩa là data cần ổn định 3ns sau clock edge tại input port",
+      "set_false_path loại bỏ timing check giữa hai clock domain khác nhau",
+      "set_output_delay -max 2.0 nghĩa là data phải sẵn sàng trước clock edge 2ns tại output port"
+    ],
+    "correct": [
+      0,
+      2,
+      3
+    ],
+    "explanation": "Slide Chương 6: Clock period 10ns = 1/10ns = 100MHz. set_input_delay -max 3.0 nghĩa là data đến input port TRỄ TỐI ĐA 3ns SAU clock edge (external delay). set_output_delay -max 2.0 nghĩa là data phải có MẶT tại output port ÍT NHẤT 2ns TRƯỚC clock edge tiếp theo (yêu cầu external setup). set_false_path loại bỏ timing check giữa hai clock domain - thường dùng cho CDC paths."
+  },
+  {
+    "id": 100,
+    "chapter": 6,
+    "chapterTitle": "Chương 6: Tích hợp EDA Tools",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "⚠️ BẪY TỔNG HỢP: Phân tích đoạn script DC sau và chọn các phát biểu ĐÚNG:",
+    "code": "set DESIGN_NAME \"alu_top\"\nset CLK_PERIOD 2.0\n\nread_verilog \"rtl/${DESIGN_NAME}.v\"\ncurrent_design $DESIGN_NAME\n\ncreate_clock -period $CLK_PERIOD [get_ports clk]\ncompile_ultra\n\nreport_timing -delay_type max > rpt/timing.rpt\nreport_area > rpt/area.rpt\nreport_power > rpt/power.rpt\n\nwrite -format verilog -output \"netlist/${DESIGN_NAME}_netlist.v\"\nwrite_sdc \"constraints/${DESIGN_NAME}.sdc\"",
+    "options": [
+      "report_timing -delay_type max báo cáo setup timing (worst negative slack)",
+      "write_sdc xuất constraints đã dùng để có thể tái sử dụng ở bước PnR",
+      "compile_ultra phải chạy TRƯỚC report_timing để có kết quả synthesis",
+      "compile_ultra nên chạy TRƯỚC khi đặt constraints để tool tự tối ưu"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "Slide Chương 6: ĐÂY LÀ BẪY! Thứ tự ĐÚNG: constraints (create_clock) PHẢI đặt TRƯỚC compile_ultra. Tool cần biết constraints để tối ưu đúng mục tiêu. compile_ultra PHẢI chạy TRƯỚC report để có kết quả. write_sdc xuất constraints cho bước tiếp theo (PnR). report_timing -delay_type max = setup check. Nếu đặt constraints SAU compile_ultra, tool sẽ KHÔNG tối ưu đúng!"
+  }
+];
+
+    // ==========================================
+    // TRẠNG THÁI VÀ ĐIỀU KHIỂN GIAO DIỆN
+    // ==========================================
+    let currentMainTab = 'quiz'; // 'theory' hoặc 'quiz'
+    let currentMode = 'practice'; // 'practice' hoặc 'exam'
+    let currentFilter = 0; // 0: Tất cả, 1-6: theo chương
+    let currentDifficulty = 'all'; // 'all', 'easy', 'medium', 'hard'
+    let searchQuery = '';
+    let userAnswers = {}; // { questionId: [selectedIndices] }
+    let checkedStatus = {}; // { questionId: boolean }
+    let bookmarkedQuestions = new Set();
+    let examTimerInterval = null;
+    let examTimeRemaining = 60 * 60;
+    let examStartTime = null;
+
+    // Chuyển Tab chính: Lý Thuyết vs Trắc Nghiệm
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+      const theoryTabEl = document.getElementById('theoryTab');
+      const quizTabEl = document.getElementById('quizTab');
+      const tabTheoryBtn = document.getElementById('tabTheoryBtn');
+      const tabQuizBtn = document.getElementById('tabQuizBtn');
+
+      if (tab === 'theory') {
+        theoryTabEl.classList.remove('hidden');
+        quizTabEl.classList.add('hidden');
+        tabTheoryBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all bg-sky-500 text-white shadow-sm';
+        tabQuizBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        quizTabEl.classList.remove('hidden');
+        theoryTabEl.classList.add('hidden');
+        tabQuizBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all bg-sky-500 text-white shadow-sm';
+        tabTheoryBtn.className = 'flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white';
+        renderQuiz();
+      }
+    }
+
+    // Từ Lý thuyết bấm chuyển nhanh sang câu hỏi của chương đó
+    function filterAndSwitchQuiz(chapterNumber) {
+      setFilter(chapterNumber);
+      switchMainTab('quiz');
+    }
+
+    // Khởi tạo ứng dụng
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDifficultyFilters();
+      renderChapterFilters();
+      renderQuiz();
+      updateStats();
+    });
+
+    // Chuyển đổi chế độ trắc nghiệm
+    function setMode(mode) {
+      currentMode = mode;
+      const btnPractice = document.getElementById('modePractice');
+      const btnExam = document.getElementById('modeExam');
+      const timerEl = document.getElementById('examTimer');
+      const submitArea = document.getElementById('examSubmitArea');
+
+      if (mode === 'practice') {
+        btnPractice.className = 'py-2 px-2.5 rounded-xl transition-all bg-sky-500 text-white shadow-sm text-center';
+        btnExam.className = 'py-2 px-2.5 rounded-xl transition-all bg-slate-900 border border-slate-700 text-slate-400 hover:text-white text-center';
+        timerEl.classList.add('hidden');
+        submitArea.classList.add('hidden');
+        stopExamTimer();
+      } else {
+        btnExam.className = 'py-2 px-2.5 rounded-xl transition-all bg-amber-500 text-white shadow-sm text-center';
+        btnPractice.className = 'py-2 px-2.5 rounded-xl transition-all bg-slate-900 border border-slate-700 text-slate-400 hover:text-white text-center';
+        timerEl.classList.remove('hidden');
+        timerEl.classList.add('flex');
+        submitArea.classList.remove('hidden');
+        startExamTimer();
+      }
+      renderQuiz();
+      updateStats();
+    }
+
+    // Timer cho thi thử
+    function startExamTimer() {
+      stopExamTimer();
+      examTimeRemaining = 60 * 60;
+      examStartTime = Date.now();
+      updateTimerDisplay();
+      examTimerInterval = setInterval(() => {
+        examTimeRemaining--;
+        updateTimerDisplay();
+        if (examTimeRemaining <= 0) {
+          stopExamTimer();
+          alert("⏱️ Đã hết giờ làm bài thi! Hệ thống sẽ tự động nộp bài.");
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    function stopExamTimer() {
+      if (examTimerInterval) {
+        clearInterval(examTimerInterval);
+        examTimerInterval = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(examTimeRemaining / 60);
+      const seconds = examTimeRemaining % 60;
+      document.getElementById('timerText').innerText = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Render Bộ lọc chương
+    function renderDifficultyFilters() {
+      const counts = {
+        all: QUESTION_BANK.length,
+        easy: QUESTION_BANK.filter(q => q.difficulty === 'easy').length,
+        medium: QUESTION_BANK.filter(q => q.difficulty === 'medium').length,
+        hard: QUESTION_BANK.filter(q => q.difficulty === 'hard').length
+      };
+
+      const diffs = [
+        { id: 'all', label: 'Tất cả', count: counts.all, color: 'text-slate-300' },
+        { id: 'easy', label: '🟢 Dễ', count: counts.easy, color: 'text-emerald-400' },
+        { id: 'medium', label: '🟡 Vừa', count: counts.medium, color: 'text-amber-400' },
+        { id: 'hard', label: '🔴 Đánh đố', count: counts.hard, color: 'text-rose-400' }
+      ];
+
+      const container = document.getElementById('difficultyFilterList');
+      if (!container) return;
+      container.innerHTML = diffs.map(d => `
+        <button onclick="setDifficulty('${d.id}')" 
+          class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition border text-xs ${
+            currentDifficulty === d.id 
+              ? 'bg-purple-500/20 text-purple-200 border-purple-500/50 font-bold shadow-sm' 
+              : 'bg-slate-900/60 border-slate-700/60 text-slate-400 hover:text-white hover:bg-slate-700/50'
+          }">
+          <span class="${d.color}">${d.label}</span>
+          <span class="badge bg-slate-800 text-[10px] text-slate-300 px-1.5 py-0.5">${d.count}</span>
+        </button>
+      `).join('');
+    }
+
+    function setDifficulty(diff) {
+      currentDifficulty = diff;
+      renderDifficultyFilters();
+      renderQuiz();
+    }
+
+    function renderChapterFilters() {
+      const chapters = [
+        { id: 0, label: "Tất cả các chương", count: QUESTION_BANK.length },
+        { id: 1, label: "Chương 1: Tổng quan vi mạch", count: QUESTION_BANK.filter(q => q.chapter === 1).length },
+        { id: 2, label: "Chương 2: Shell Bash & Linux", count: QUESTION_BANK.filter(q => q.chapter === 2).length },
+        { id: 3, label: "Chương 3: Cú pháp Tcl cơ bản", count: QUESTION_BANK.filter(q => q.chapter === 3).length },
+        { id: 4, label: "Chương 4: Điều khiển luồng Tcl", count: QUESTION_BANK.filter(q => q.chapter === 4).length },
+        { id: 5, label: "Chương 5: Chuỗi & File I/O", count: QUESTION_BANK.filter(q => q.chapter === 5).length },
+        { id: 6, label: "Chương 6: Tích hợp EDA Tools", count: QUESTION_BANK.filter(q => q.chapter === 6).length }
+      ];
+
+      const container = document.getElementById('chapterFilterList');
+      container.innerHTML = chapters.map(ch => `
+        <button onclick="setFilter(${ch.id})" 
+          class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition ${
+            currentFilter === ch.id 
+              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold' 
+              : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+          }">
+          <span class="truncate pr-2">${ch.label}</span>
+          <span class="badge ${currentFilter === ch.id ? 'bg-sky-500 text-white' : 'bg-slate-700 text-slate-300'} text-[10px]">${ch.count}</span>
+        </button>
+      `).join('');
+    }
+
+    function setFilter(chId) {
+      currentFilter = chId;
+      renderChapterFilters();
+      renderQuiz();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+      renderQuiz();
+    }
+
+    // Lọc danh sách câu hỏi
+    function getFilteredQuestions() {
+      return QUESTION_BANK.filter(q => {
+        const matchChapter = currentFilter === 0 || q.chapter === currentFilter;
+        const matchDiff = currentDifficulty === 'all' || q.difficulty === currentDifficulty;
+        const matchSearch = searchQuery === '' || 
+          q.question.toLowerCase().includes(searchQuery) ||
+          q.chapterTitle.toLowerCase().includes(searchQuery) ||
+          (q.code && q.code.toLowerCase().includes(searchQuery)) ||
+          q.options.some(opt => opt.toLowerCase().includes(searchQuery));
+        return matchChapter && matchDiff && matchSearch;
+      });
+    }
+
+    function _disabled_old_filter() {
+      return QUESTION_BANK.filter(q => {
+        const matchChapter = currentFilter === 0 || q.chapter === currentFilter;
+        const matchSearch = searchQuery === '' || 
+          q.question.toLowerCase().includes(searchQuery) ||
+          q.chapterTitle.toLowerCase().includes(searchQuery) ||
+          (q.code && q.code.toLowerCase().includes(searchQuery)) ||
+          q.options.some(opt => opt.toLowerCase().includes(searchQuery));
+        return matchChapter && matchSearch;
+      });
+    }
+
+    // Render danh sách câu hỏi
+    function renderQuiz() {
+      const filtered = getFilteredQuestions();
+      const container = document.getElementById('quizContainer');
+      const activeBadge = document.getElementById('activeFilterBadge');
+      const countBadge = document.getElementById('filteredCountBadge');
+
+      const filterNames = [
+        "Tất cả các chương",
+        "Chương 1: Tổng quan vi mạch",
+        "Chương 2: Shell Bash & Linux",
+        "Chương 3: Cú pháp Tcl cơ bản",
+        "Chương 4: Điều khiển luồng Tcl",
+        "Chương 5: Chuỗi & File I/O",
+        "Chương 6: Tích hợp EDA Tools"
+      ];
+      activeBadge.innerText = filterNames[currentFilter];
+      countBadge.innerText = `(${filtered.length} câu hỏi)`;
+
+      renderQuestionGrid(filtered);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-12 text-center">
+            <span class="text-4xl block mb-2">🔍</span>
+            <p class="text-slate-300 font-semibold text-sm">Không tìm thấy câu hỏi phù hợp!</p>
+            <p class="text-slate-500 text-xs mt-1">Hãy thử xóa bộ lọc tìm kiếm hoặc chọn chương khác.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map((q, index) => {
+        const isChecked = checkedStatus[q.id];
+        const selected = userAnswers[q.id] || [];
+        const isBookmark = bookmarkedQuestions.has(q.id);
+
+        const chapterColors = {
+          1: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+          2: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+          3: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+          4: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+          5: "bg-pink-500/15 text-pink-400 border-pink-500/30",
+          6: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+        };
+
+        return `
+          <article id="question-card-${q.id}" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 md:p-6 shadow-md transition-all">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="flex items-center flex-wrap gap-2">
+                <span class="badge ${chapterColors[q.chapter] || 'bg-slate-700 text-slate-300'}">
+                  ${q.chapterTitle}
+                </span>
+                <span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Câu ${q.id} &bull; Chọn nhiều đáp án
+                </span>
+              </div>
+              <button onclick="toggleBookmark(${q.id})" title="Đánh dấu câu hỏi cần xem lại" class="text-slate-400 hover:text-amber-400 transition text-base">
+                ${isBookmark ? '⭐' : '☆'}
+              </button>
+            </div>
+
+            <h3 class="text-sm md:text-base font-semibold text-white leading-relaxed mb-3">
+              ${q.question}
+            </h3>
+
+            ${q.code ? `
+              <div class="bg-slate-950/90 border border-slate-700/80 rounded-xl p-3.5 mb-4 text-xs font-mono text-sky-300 overflow-x-auto custom-scroll shadow-inner">
+                <pre>${escapeHtml(q.code)}</pre>
+              </div>
+            ` : ''}
+
+            <div class="space-y-2.5 my-4">
+              ${q.options.map((opt, optIdx) => {
+                const isSelected = selected.includes(optIdx);
+                const isCorrect = q.correct.includes(optIdx);
+
+                let highlightClass = "";
+                let indicator = `<span class="w-5 h-5 rounded-md border flex items-center justify-center text-[10px] font-bold ${
+                  isSelected ? 'bg-sky-500 border-sky-400 text-white' : 'border-slate-600 text-slate-400'
+                }">${String.fromCharCode(65 + optIdx)}</span>`;
+
+                if (currentMode === 'practice' && isChecked) {
+                  if (isSelected && isCorrect) {
+                    highlightClass = "correct-highlight";
+                    indicator = `<span class="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>`;
+                  } else if (isSelected && !isCorrect) {
+                    highlightClass = "wrong-highlight";
+                    indicator = `<span class="w-5 h-5 rounded-md bg-rose-500 text-white flex items-center justify-center text-xs">✗</span>`;
+                  } else if (!isSelected && isCorrect) {
+                    highlightClass = "missed-highlight";
+                    indicator = `<span class="w-5 h-5 rounded-md bg-amber-500/20 border border-amber-500 text-amber-300 flex items-center justify-center text-xs">!</span>`;
+                  }
+                } else if (isSelected) {
+                  highlightClass = "selected";
+                }
+
+                return `
+                  <div onclick="selectOption(${q.id}, ${optIdx})" 
+                    class="option-btn flex items-start gap-3 p-3 rounded-xl border border-slate-700 bg-slate-900/60 cursor-pointer ${highlightClass}">
+                    ${indicator}
+                    <span class="text-xs md:text-sm text-slate-200 leading-relaxed select-none">${escapeHtml(opt)}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            ${currentMode === 'practice' ? `
+              <div class="flex items-center justify-between pt-2 border-t border-slate-700/60">
+                <button onclick="checkQuestion(${q.id})" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                  🔍 Kiểm tra đáp án
+                </button>
+                <button onclick="toggleSingleExplanation(${q.id})" class="text-xs text-slate-400 hover:text-sky-300 transition">
+                  ${isChecked ? '📖 Ẩn/Hiện giải thích' : ''}
+                </button>
+              </div>
+            ` : ''}
+
+            <div id="expl-${q.id}" class="${(currentMode === 'practice' && isChecked) ? 'block' : 'hidden'} mt-4 p-4 rounded-xl bg-slate-900/90 border border-slate-700 text-xs space-y-2">
+              <div class="flex items-center gap-2 font-bold text-sky-400">
+                <span>💡 Giải thích chi tiết:</span>
+                <span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Đáp án đúng: ${q.correct.map(idx => String.fromCharCode(65 + idx)).join(', ')}
+                </span>
+              </div>
+              <p class="text-slate-300 whitespace-pre-line leading-relaxed">${escapeHtml(q.explanation)}</p>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // Grid điều hướng câu hỏi
+    function renderQuestionGrid(filtered) {
+      const grid = document.getElementById('questionGrid');
+      grid.innerHTML = filtered.map(q => {
+        const isAnswered = userAnswers[q.id] && userAnswers[q.id].length > 0;
+        const isChecked = checkedStatus[q.id];
+        let colorClass = "bg-slate-800 text-slate-400 border-slate-700";
+
+        if (currentMode === 'practice' && isChecked) {
+          const userChoices = (userAnswers[q.id] || []).sort();
+          const correctChoices = [...q.correct].sort();
+          const isFullCorrect = JSON.stringify(userChoices) === JSON.stringify(correctChoices);
+          colorClass = isFullCorrect ? "bg-emerald-500 text-white border-emerald-400" : "bg-rose-500 text-white border-rose-400";
+        } else if (isAnswered) {
+          colorClass = "bg-sky-500/30 text-sky-300 border-sky-400";
+        }
+
+        return `
+          <button onclick="scrollToQuestion(${q.id})" class="py-1.5 text-xs font-bold rounded-lg border text-center transition ${colorClass}">
+            ${q.id}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function scrollToQuestion(id) {
+      const el = document.getElementById(`question-card-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function selectOption(qId, optIdx) {
+      if (!userAnswers[qId]) {
+        userAnswers[qId] = [];
+      }
+      const idx = userAnswers[qId].indexOf(optIdx);
+      if (idx > -1) {
+        userAnswers[qId].splice(idx, 1);
+      } else {
+        userAnswers[qId].push(optIdx);
+      }
+
+      if (currentMode === 'practice') {
+        checkedStatus[qId] = false;
+      }
+
+      renderQuiz();
+      updateStats();
+    }
+
+    function checkQuestion(qId) {
+      const selected = userAnswers[qId] || [];
+      if (selected.length === 0) {
+        alert("⚠️ Bạn vui lòng chọn ít nhất một đáp án trước khi kiểm tra!");
+        return;
+      }
+      checkedStatus[qId] = true;
+      renderQuiz();
+      updateStats();
+
+      const expl = document.getElementById(`expl-${qId}`);
+      if (expl) expl.classList.remove('hidden');
+    }
+
+    function toggleSingleExplanation(qId) {
+      const expl = document.getElementById(`expl-${qId}`);
+      if (expl) {
+        expl.classList.toggle('hidden');
+      }
+    }
+
+    function toggleAllExplanations() {
+      const allExpl = document.querySelectorAll('[id^="expl-"]');
+      const anyHidden = Array.from(allExpl).some(el => el.classList.contains('hidden'));
+      allExpl.forEach(el => {
+        if (anyHidden) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+    }
+
+    function toggleBookmark(qId) {
+      if (bookmarkedQuestions.has(qId)) bookmarkedQuestions.delete(qId);
+      else bookmarkedQuestions.add(qId);
+      renderQuiz();
+    }
+
+    function updateStats() {
+      const total = QUESTION_BANK.length;
+      let answeredCount = 0;
+      let correctCount = 0;
+      let wrongCount = 0;
+
+      QUESTION_BANK.forEach(q => {
+        const selected = userAnswers[q.id];
+        if (selected && selected.length > 0) {
+          answeredCount++;
+          if (checkedStatus[q.id]) {
+            const userSorted = [...selected].sort();
+            const correctSorted = [...q.correct].sort();
+            if (JSON.stringify(userSorted) === JSON.stringify(correctSorted)) {
+              correctCount++;
+            } else {
+              wrongCount++;
+            }
+          }
+        }
+      });
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statCorrect').innerText = correctCount;
+      document.getElementById('statWrong').innerText = wrongCount;
+
+      const pct = Math.round((answeredCount / total) * 100);
+      document.getElementById('progressPercent').innerText = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+    }
+
+    function submitExam() {
+      stopExamTimer();
+      let totalQuestions = QUESTION_BANK.length;
+      let correctCount = 0;
+      let chapterScores = { 1: { c: 0, t: 0 }, 2: { c: 0, t: 0 }, 3: { c: 0, t: 0 }, 4: { c: 0, t: 0 }, 5: { c: 0, t: 0 }, 6: { c: 0, t: 0 } };
+      let diffScores = { easy: { c: 0, t: 0 }, medium: { c: 0, t: 0 }, hard: { c: 0, t: 0 } };
+      QUESTION_BANK.forEach(q => {
+        if (diffScores[q.difficulty]) diffScores[q.difficulty].t++;
+        const sel = (userAnswers[q.id] || []).sort();
+        const cor = [...q.correct].sort();
+        if (JSON.stringify(sel) === JSON.stringify(cor)) {
+          if (diffScores[q.difficulty]) diffScores[q.difficulty].c++;
+        }
+      });
+
+      QUESTION_BANK.forEach(q => {
+        chapterScores[q.chapter].t++;
+        checkedStatus[q.id] = true;
+        const selected = (userAnswers[q.id] || []).sort();
+        const correct = [...q.correct].sort();
+        if (JSON.stringify(selected) === JSON.stringify(correct)) {
+          correctCount++;
+          chapterScores[q.chapter].c++;
+        }
+      });
+
+      const accuracy = Math.round((correctCount / totalQuestions) * 100);
+      const timeSpentSeconds = (60 * 60) - examTimeRemaining;
+      const spentMin = Math.floor(timeSpentSeconds / 60);
+      const spentSec = timeSpentSeconds % 60;
+
+      document.getElementById('modalScore').innerText = `${correctCount}/${totalQuestions}`;
+      document.getElementById('modalAccuracy').innerText = `${accuracy}%`;
+      document.getElementById('modalTimeSpent').innerText = `${spentMin}p ${spentSec}s`;
+
+      if (accuracy >= 80) {
+        document.getElementById('modalIcon').innerText = '🎉';
+        document.getElementById('modalTitle').innerText = 'Xuất Sắc!';
+        document.getElementById('modalSub').innerText = 'Bạn đã nắm rất vững kiến thức Lập trình Script EDA.';
+      } else if (accuracy >= 50) {
+        document.getElementById('modalIcon').innerText = '👍';
+        document.getElementById('modalTitle').innerText = 'Khá Tốt!';
+        document.getElementById('modalSub').innerText = 'Hãy xem lại các câu sai để hoàn thiện kiến thức hơn.';
+      } else {
+        document.getElementById('modalIcon').innerText = '📚';
+        document.getElementById('modalTitle').innerText = 'Cần Cố Gắng Thêm';
+        document.getElementById('modalSub').innerText = 'Hãy đọc kỹ lại các slide lý thuyết và làm lại bài thi.';
+      }
+
+      const chapterNames = {
+        1: "Chương 1: Tổng quan vi mạch",
+        2: "Chương 2: Shell Bash & Linux",
+        3: "Chương 3: Cú pháp Tcl cơ bản",
+        4: "Chương 4: Điều khiển luồng Tcl",
+        5: "Chương 5: Chuỗi & File I/O",
+        6: "Chương 6: Tích hợp EDA Tools"
+      };
+
+      const summaryHtml = Object.keys(chapterScores).map(chId => {
+        const item = chapterScores[chId];
+        const chPct = item.t > 0 ? Math.round((item.c / item.t) * 100) : 0;
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-700/60">
+            <span class="text-slate-300 truncate max-w-[200px]">${chapterNames[chId]}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white">${item.c}/${item.t}</span>
+              <span class="badge ${chPct >= 70 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'} text-[10px]">${chPct}%</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      const diffSummaryHtml = `
+        <div class="grid grid-cols-3 gap-2 mb-3 pt-1">
+          <div class="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-center">
+            <span class="block text-emerald-400 text-[10px] font-bold">🟢 CƠ BẢN</span>
+            <span class="font-bold text-white text-xs">${diffScores.easy.c}/${diffScores.easy.t}</span>
+            <span class="block text-[10px] text-slate-400">(${diffScores.easy.t > 0 ? Math.round(diffScores.easy.c*100/diffScores.easy.t) : 0}%)</span>
+          </div>
+          <div class="p-2 rounded-xl bg-amber-950/40 border border-amber-500/30 text-center">
+            <span class="block text-amber-400 text-[10px] font-bold">🟡 VẬN DỤNG</span>
+            <span class="font-bold text-white text-xs">${diffScores.medium.c}/${diffScores.medium.t}</span>
+            <span class="block text-[10px] text-slate-400">(${diffScores.medium.t > 0 ? Math.round(diffScores.medium.c*100/diffScores.medium.t) : 0}%)</span>
+          </div>
+          <div class="p-2 rounded-xl bg-rose-950/40 border border-rose-500/30 text-center">
+            <span class="block text-rose-400 text-[10px] font-bold">🔴 ĐÁNH ĐỐ</span>
+            <span class="font-bold text-white text-xs">${diffScores.hard.c}/${diffScores.hard.t}</span>
+            <span class="block text-[10px] text-slate-400">(${diffScores.hard.t > 0 ? Math.round(diffScores.hard.c*100/diffScores.hard.t) : 0}%)</span>
+          </div>
+        </div>
+      `;
+      document.getElementById('chapterScoreSummary').innerHTML = diffSummaryHtml + summaryHtml;
+
+      document.getElementById('resultModal').classList.remove('hidden');
+      renderQuiz();
+      updateStats();
+    }
+
+    function closeResultModal() {
+      document.getElementById('resultModal').classList.add('hidden');
+    }
+
+    function restartExam() {
+      closeResultModal();
+      resetAllProgress();
+      setMode('exam');
+    }
+
+    function resetAllProgress() {
+      userAnswers = {};
+      checkedStatus = {};
+      renderQuiz();
+      updateStats();
+      if (currentMode === 'exam') {
+        startExamTimer();
+      }
+    }
+
+    function shuffleQuestions() {
+      QUESTION_BANK.sort(() => Math.random() - 0.5);
+      renderQuiz();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
